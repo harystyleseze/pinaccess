@@ -216,6 +216,42 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Browse Content Section */}
+        <section className="py-20">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Discover Premium Content
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+              Browse high-quality digital content from creators around the world. 
+              Pay securely with crypto and access instantly.
+            </p>
+            <Link href="/browse" className="btn-primary text-lg px-8 py-4 font-bold">
+              🔍 Browse Content Library
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="card-gradient p-6 text-center">
+              <div className="text-4xl mb-4">📚</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Research Papers</h3>
+              <p className="text-gray-600">Academic research, whitepapers, and technical documentation</p>
+            </div>
+            
+            <div className="card-gradient p-6 text-center">
+              <div className="text-4xl mb-4">🎨</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Digital Art</h3>
+              <p className="text-gray-600">High-resolution artwork, designs, and creative assets</p>
+            </div>
+            
+            <div className="card-gradient p-6 text-center">
+              <div className="text-4xl mb-4">📖</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">E-books & Guides</h3>
+              <p className="text-gray-600">Educational content, tutorials, and comprehensive guides</p>
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="py-12 border-t border-gray-200 mt-20">
           <div className="text-center">

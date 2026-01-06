@@ -54,7 +54,7 @@ export async function GET(
       }, { status: 500 })
     }
 
-    // Transform the response to match our interface
+    // Transform the response to match our interface (keep snake_case for PaymentRequirement)
     const paymentInstruction = {
       id: result.data!.id,
       version: result.data!.version,
@@ -62,10 +62,10 @@ export async function GET(
       description: result.data!.description,
       paymentRequirements: result.data!.paymentRequirements.map(req => ({
         asset: req.asset,
-        payTo: req.pay_to,
+        pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
         network: req.network as 'base-sepolia',
         description: req.description,
-        maxAmountRequired: req.max_amount_required
+        max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
       })),
       createdAt: result.data!.createdAt,
       updatedAt: result.data!.updatedAt,
@@ -187,7 +187,7 @@ export async function PATCH(
       }, { status: 500 })
     }
 
-    // Transform response to match our interface
+    // Transform response to match our interface (keep snake_case for PaymentRequirement)
     const paymentInstruction = {
       id: result.data!.id,
       version: result.data!.version,
@@ -195,10 +195,10 @@ export async function PATCH(
       description: result.data!.description,
       paymentRequirements: result.data!.paymentRequirements.map(req => ({
         asset: req.asset,
-        payTo: req.pay_to,
+        pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
         network: req.network as 'base-sepolia',
         description: req.description,
-        maxAmountRequired: req.max_amount_required
+        max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
       })),
       createdAt: result.data!.createdAt,
       updatedAt: result.data!.updatedAt,

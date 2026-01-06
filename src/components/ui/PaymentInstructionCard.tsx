@@ -58,16 +58,16 @@ export default function PaymentInstructionCard({
     if (!requirement) return 'No price set'
     
     try {
-      const usdAmount = convertUsdcToUsd(requirement.maxAmountRequired)
-      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.maxAmountRequired).toLocaleString()} USDC)`
+      const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
+      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.max_amount_required).toLocaleString()} USDC)`
     } catch {
-      return `${parseInt(requirement.maxAmountRequired).toLocaleString()} USDC`
+      return `${parseInt(requirement.max_amount_required).toLocaleString()} USDC`
     }
   }
 
   const getWalletAddress = () => {
     const requirement = getPaymentRequirement()
-    return requirement?.payTo || 'No wallet set'
+    return requirement?.pay_to || 'No wallet set'
   }
 
   const getStatusColor = () => {

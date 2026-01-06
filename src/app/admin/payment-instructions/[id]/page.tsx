@@ -167,10 +167,10 @@ export default function PaymentInstructionDetailPage() {
     if (!requirement) return 'No price set'
     
     try {
-      const usdAmount = convertUsdcToUsd(requirement.maxAmountRequired)
-      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.maxAmountRequired).toLocaleString()} USDC)`
+      const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
+      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.max_amount_required).toLocaleString()} USDC)`
     } catch {
-      return `${parseInt(requirement.maxAmountRequired).toLocaleString()} USDC`
+      return `${parseInt(requirement.max_amount_required).toLocaleString()} USDC`
     }
   }
 
@@ -300,7 +300,7 @@ export default function PaymentInstructionDetailPage() {
               <div>
                 <label className="text-sm font-medium text-gray-500">Wallet Address</label>
                 <p className="text-sm font-mono text-gray-700 break-all">
-                  {getPaymentRequirement()?.payTo || 'No wallet set'}
+                  {getPaymentRequirement()?.pay_to || 'No wallet set'}
                 </p>
               </div>
               

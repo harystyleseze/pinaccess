@@ -51,7 +51,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaymentIns
       }, { status: 500 })
     }
 
-    // Transform the response to match our interface
+    // Transform the response to match our interface (keep snake_case for PaymentRequirement)
     const paymentInstructions = result.data?.paymentInstructions?.map(pi => ({
       id: pi.id,
       version: pi.version,
@@ -59,10 +59,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaymentIns
       description: pi.description,
       paymentRequirements: pi.paymentRequirements.map(req => ({
         asset: req.asset,
-        payTo: req.pay_to,
+        pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
         network: req.network as 'base-sepolia',
         description: req.description,
-        maxAmountRequired: req.max_amount_required
+        max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
       })),
       createdAt: pi.createdAt,
       updatedAt: pi.updatedAt,
@@ -174,10 +174,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<PaymentIn
       description: result.data!.description,
       paymentRequirements: result.data!.paymentRequirements.map(req => ({
         asset: req.asset,
-        payTo: req.pay_to,
+        pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
         network: req.network as 'base-sepolia',
         description: req.description,
-        maxAmountRequired: req.max_amount_required
+        max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
       })),
       createdAt: new Date().toISOString(), // Set current timestamp for new instructions
       attachedCIDCount: 0

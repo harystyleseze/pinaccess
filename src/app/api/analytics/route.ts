@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    let analyticsData = [];
+    let analyticsData: Array<{
+      value: string;
+      count: number;
+      size?: number;
+      isMonetized?: boolean;
+      revenue?: number;
+      createdAt?: string;
+    }> = [];
 
     if (type === 'documents') {
       // Document upload analytics

@@ -57,11 +57,11 @@ export default function PaymentInstructionsPage() {
         
         // Calculate average price
         const instructionsWithPrice = instructions.filter(pi => 
-          pi.paymentRequirements?.[0]?.maxAmountRequired
+          pi.paymentRequirements?.[0]?.max_amount_required
         )
         const averagePrice = instructionsWithPrice.length > 0 
           ? instructionsWithPrice.reduce((sum, pi) => {
-              const usdcAmount = parseInt(pi.paymentRequirements[0].maxAmountRequired)
+              const usdcAmount = parseInt(pi.paymentRequirements[0].max_amount_required)
               return sum + (usdcAmount / 1000000) // Convert USDC to USD
             }, 0) / instructionsWithPrice.length
           : 0
@@ -150,8 +150,8 @@ export default function PaymentInstructionsPage() {
         case 'name':
           return a.name.localeCompare(b.name)
         case 'price':
-          const aPrice = a.paymentRequirements?.[0]?.maxAmountRequired ? parseInt(a.paymentRequirements[0].maxAmountRequired) : 0
-          const bPrice = b.paymentRequirements?.[0]?.maxAmountRequired ? parseInt(b.paymentRequirements[0].maxAmountRequired) : 0
+          const aPrice = a.paymentRequirements?.[0]?.max_amount_required ? parseInt(a.paymentRequirements[0].max_amount_required) : 0
+          const bPrice = b.paymentRequirements?.[0]?.max_amount_required ? parseInt(b.paymentRequirements[0].max_amount_required) : 0
           return bPrice - aPrice
         default:
           return 0

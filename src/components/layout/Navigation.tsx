@@ -10,6 +10,8 @@ export default function Navigation() {
 
   const navItems = [
     { href: '/', label: 'Home', icon: '🏠' },
+    { href: '/browse', label: 'Browse Content', icon: '🔍' },
+    { href: '/how-it-works', label: 'How It Works', icon: '❓' },
     { href: '/admin', label: 'Dashboard', icon: '📊' },
     { href: '/admin/upload', label: 'Upload', icon: '📤' },
     { href: '/admin/payment-instructions', label: 'Payment Instructions', icon: '💳' },

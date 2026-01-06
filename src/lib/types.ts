@@ -39,10 +39,10 @@ export interface PaymentInstruction {
 
 export interface PaymentRequirement {
   asset: string; // USDC token address (0x036CbD53842c5426634e7929541eC2318f3dCF7e for Base Sepolia)
-  payTo: string; // Creator wallet address
+  pay_to: string; // Creator wallet address (Pinata API uses snake_case)
   network: 'base-sepolia';
   description: string;
-  maxAmountRequired: string; // USDC amount in smallest unit (6 decimals)
+  max_amount_required: string; // USDC amount in smallest unit (6 decimals) (Pinata API uses snake_case)
 }
 
 export interface AttachedCID {

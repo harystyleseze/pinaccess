@@ -38,10 +38,10 @@ export default function PaymentInstructionForm({
       const requirement = initialData.paymentRequirements?.[0]
       let priceUSD = 0
       
-      if (requirement?.maxAmountRequired) {
+      if (requirement?.max_amount_required) {
         try {
           // Convert USDC back to USD for editing
-          const usdcAmount = parseInt(requirement.maxAmountRequired)
+          const usdcAmount = parseInt(requirement.max_amount_required)
           priceUSD = usdcAmount / 1000000 // Convert from 6-decimal USDC to USD
         } catch (error) {
           console.error('Error converting USDC to USD:', error)
@@ -52,7 +52,7 @@ export default function PaymentInstructionForm({
         name: initialData.name || '',
         description: initialData.description || '',
         priceUSD,
-        walletAddress: requirement?.payTo || '',
+        walletAddress: requirement?.pay_to || '',
         network: 'base-sepolia' as const
       }
 
