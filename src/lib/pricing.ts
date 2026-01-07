@@ -203,6 +203,49 @@ export function formatUsdcTokenAmount(amount: string): string {
 }
 
 /**
+ * Formats USDC smallest units for display with clear labeling
+ */
+export function formatUsdcSmallestUnits(amount: string): string {
+  try {
+    const numericAmount = parseInt(amount, 10);
+    if (isNaN(numericAmount)) {
+      return `${amount} USDC units`;
+    }
+    
+    // Format with thousands separators and clear unit label
+    return `${numericAmount.toLocaleString()} USDC units`;
+  } catch {
+    return `${amount} USDC units`;
+  }
+}
+
+/**
+ * Formats USDC amount with both token and USD equivalent display
+ */
+export function formatUsdcWithEquivalent(smallestUnits: string): string {
+  try {
+    const usdAmount = convertUsdcToUsd(smallestUnits);
+    const tokenAmount = usdAmount.toFixed(6).replace(/\.?0+$/, ''); // Remove trailing zeros
+    return `${tokenAmount} USDC (${formatUsdAmount(usdAmount)})`;
+  } catch {
+    return formatUsdcSmallestUnits(smallestUnits);
+  }
+}
+
+/**
+ * Formats payment button amount (converts from smallest units to tokens)
+ */
+export function formatPaymentButtonAmount(smallestUnits: string): string {
+  try {
+    const usdAmount = convertUsdcToUsd(smallestUnits);
+    const tokenAmount = usdAmount.toFixed(6).replace(/\.?0+$/, ''); // Remove trailing zeros
+    return `${tokenAmount} USDC`;
+  } catch {
+    return `${smallestUnits} USDC units`;
+  }
+}
+
+/**
  * Formats dual currency display (USD and USDC)
  */
 export function formatDualCurrency(usdAmount: number): string {

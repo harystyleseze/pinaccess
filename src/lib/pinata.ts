@@ -30,10 +30,14 @@ export class PinataClient {
   constructor() {
     this.jwt = process.env.PINATA_JWT || '';
     this.apiUrl = process.env.PINATA_API_URL || 'https://api.pinata.cloud';
-    this.gatewayUrl = process.env.PINATA_GATEWAY_URL || 'https://gateway.mypinata.cloud';
+    this.gatewayUrl = process.env.PINATA_GATEWAY_URL || '';
     
     if (!this.jwt) {
       throw new Error('PINATA_JWT environment variable is required');
+    }
+
+    if (!this.gatewayUrl) {
+      throw new Error('PINATA_GATEWAY_URL environment variable is required');
     }
 
     // Basic JWT format validation

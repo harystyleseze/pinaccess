@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pinataClient } from '@/lib/pinata';
+import { getX402GatewayUrl } from '@/lib/gateway-config';
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +35,7 @@ export async function GET(
           if (attachedCid) {
             isMonetized = true;
             paymentInstruction = pi;
-            gatewayUrl = `${process.env.PINATA_GATEWAY_URL || 'https://gateway.mypinata.cloud'}/x402/cid/${cid}`;
+            gatewayUrl = getX402GatewayUrl(cid);
             
             // Calculate price from payment requirements
             const paymentRequirement = pi.paymentRequirements[0];

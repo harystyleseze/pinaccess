@@ -3,31 +3,33 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Navigation from '@/components/layout/Navigation';
+import { WalletConnector } from '@/components/ui/WalletConnector';
+import { PaymentButton } from '@/components/ui/PaymentButton';
+import { ContentViewer } from '@/components/ui/ContentViewer';
+import { useWalletConnection } from '@/lib/wallet-context';
+import { 
+  validatePaymentProof,
+  getContentIcon,
+  formatFileSize,
+  type ContentInfo
+} from '@/lib/content-access';
+import { BASE_SEPOLIA_USDC_ADDRESS } from '@/lib/wallet-config';
+import { formatUsdAmount, formatUsdcWithEquivalent } from '@/lib/pricing';
 
 interface ContentPageState {
   loading: boolean;
   error: string | null;
-  contentInfo: {
-    name: string;
-    size: number;
-    mimeType: string;
-    price?: {
-      usd: number;
-      usdc: string;
-    };
-    creator: string;
-    description?: string;
-    gatewayUrl: string;
-  } | null;
+  contentInfo: ContentInfo | null;
   paymentRequired: boolean;
   paymentInfo: any | null;
   accessGranted: boolean;
-  content: any | null;
+  paymentProof: string | null;
 }
 
 export default function ContentAccessPage() {
   const params = useParams();
   const cid = params.cid as string;
+  const { isConnected, address } = useWalletConnection();
   
   const [state, setState] = useState<ContentPageState>({
     loading: true,
@@ -36,7 +38,7 @@ export default function ContentAccessPage() {
     paymentRequired: false,
     paymentInfo: null,
     accessGranted: false,
-    content: null
+    paymentProof: null
   });
 
   useEffect(() => {
@@ -62,12 +64,29 @@ export default function ContentAccessPage() {
 
       // If content is free, try to access it directly
       if (!contentInfo.price || contentInfo.price.usd === 0) {
-        await accessFreeContent(contentInfo.gatewayUrl);
+        await accessFreeContent();
         return;
       }
 
+      // Check if user has already paid for this content
+      if (isConnected && address) {
+        const { tryAccessWithStoredPayment } = await import('@/lib/content-access');
+        const storedAccessResult = await tryAccessWithStoredPayment(cid, address, contentInfo);
+        
+        if (storedAccessResult && storedAccessResult.success) {
+          console.log('User has already paid for this content, granting access');
+          setState(prev => ({
+            ...prev,
+            accessGranted: true,
+            paymentProof: 'stored_payment',
+            loading: false
+          }));
+          return;
+        }
+      }
+
       // For paid content, attempt access to get payment requirements
-      await attemptPaidContentAccess(contentInfo.gatewayUrl);
+      await attemptPaidContentAccess(contentInfo.gatewayUrl || '');
 
     } catch (error) {
       console.error('Content access error:', error);
@@ -79,21 +98,14 @@ export default function ContentAccessPage() {
     }
   };
 
-  const accessFreeContent = async (gatewayUrl: string) => {
+  const accessFreeContent = async () => {
     try {
-      const response = await fetch(gatewayUrl);
-      
-      if (response.ok) {
-        const content = await response.blob();
-        setState(prev => ({
-          ...prev,
-          accessGranted: true,
-          content: URL.createObjectURL(content),
-          loading: false
-        }));
-      } else {
-        throw new Error('Failed to access free content');
-      }
+      // For free content, grant access immediately
+      setState(prev => ({
+        ...prev,
+        accessGranted: true,
+        loading: false
+      }));
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -106,6 +118,7 @@ export default function ContentAccessPage() {
   const attemptPaidContentAccess = async (gatewayUrl: string) => {
     try {
       // Try to access the content directly from Pinata's x402 gateway
+      // This should return a 402 Payment Required response with payment details
       const response = await fetch(gatewayUrl, {
         method: 'GET',
         // Don't include credentials to get the 402 response
@@ -114,7 +127,17 @@ export default function ContentAccessPage() {
       if (response.status === 402) {
         // Payment required - get the actual x402 payment info from Pinata
         const paymentInfo = await response.json();
-        console.log('x402 Payment Info:', paymentInfo);
+        console.log('x402 Payment Info received:', paymentInfo);
+        
+        // Validate the x402 response structure
+        if (!paymentInfo.accepts || !Array.isArray(paymentInfo.accepts) || paymentInfo.accepts.length === 0) {
+          throw new Error('Invalid x402 payment response: missing accepts array');
+        }
+
+        const paymentOption = paymentInfo.accepts[0];
+        if (!paymentOption.maxAmountRequired || !paymentOption.payTo || !paymentOption.resource) {
+          throw new Error('Invalid x402 payment response: missing required payment fields');
+        }
         
         setState(prev => ({
           ...prev,
@@ -124,11 +147,12 @@ export default function ContentAccessPage() {
         }));
       } else if (response.ok) {
         // Access granted (user already paid or content is free)
-        const content = await response.blob();
+        // Set a special payment proof to indicate access is already granted
+        console.log('Content access: Already granted, no payment required');
         setState(prev => ({
           ...prev,
           accessGranted: true,
-          content: URL.createObjectURL(content),
+          paymentProof: 'access_already_granted', // Special value to indicate no payment needed
           loading: false
         }));
       } else {
@@ -136,127 +160,128 @@ export default function ContentAccessPage() {
       }
     } catch (error) {
       console.error('Content access error:', error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = 'Failed to check content access.';
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error: Unable to connect to content gateway. Please check your internet connection.';
+      } else if (error instanceof Error) {
+        if (error.message.includes('Invalid x402')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('HTTP 404')) {
+          errorMessage = 'Content not found. The requested content may have been removed or the link is invalid.';
+        } else if (error.message.includes('HTTP 403')) {
+          errorMessage = 'Access forbidden. You may not have permission to access this content.';
+        }
+      }
+      
       setState(prev => ({
         ...prev,
-        error: 'Failed to check content access. The content may not be properly configured for x402 payments.',
+        error: errorMessage,
         loading: false
       }));
     }
   };
 
-  const handlePayment = async () => {
-    if (!state.paymentInfo || !state.paymentInfo.accepts || !state.paymentInfo.accepts[0]) {
-      alert('Payment information not available');
-      return;
+  // Handle successful payment
+  const handlePaymentSuccess = async (paymentProof: string, transactionHash?: string, paidAmount?: string) => {
+    try {
+      console.log('Content page: Payment successful!', {
+        cid,
+        paymentProofLength: paymentProof.length,
+        transactionHash,
+        paidAmount
+      });
+
+      // Use the gateway URL from the x402 response for validation
+      const gatewayUrl = state.paymentInfo?.accepts?.[0]?.resource;
+      
+      console.log('Content page: Validating payment proof...', {
+        gatewayUrl,
+        hasPaymentInfo: !!state.paymentInfo
+      });
+      
+      // Validate payment proof
+      const validation = await validatePaymentProof(cid, paymentProof, gatewayUrl);
+      
+      console.log('Content page: Payment proof validation result:', validation);
+      
+      if (validation.isValid) {
+        console.log('Content page: Payment proof valid, granting access...');
+        
+        setState(prev => {
+          const newState = {
+            ...prev,
+            paymentProof,
+            accessGranted: true,
+            paymentRequired: false,
+            loading: false
+          };
+          console.log('Content page: Setting new state after payment success:', {
+            paymentProof: newState.paymentProof,
+            paymentProofLength: newState.paymentProof?.length,
+            accessGranted: newState.accessGranted,
+            paymentRequired: newState.paymentRequired,
+            loading: newState.loading
+          });
+          return newState;
+        });
+
+        // Store payment record for future access
+        if (address && paidAmount) {
+          console.log('Content page: Storing payment record...');
+          const { contentAccessClient } = await import('@/lib/content-access');
+          contentAccessClient.storePaymentRecord({
+            cid,
+            paymentProof,
+            transactionHash,
+            paidAt: new Date().toISOString(),
+            walletAddress: address,
+            amount: paidAmount
+          });
+        }
+      } else {
+        throw new Error(validation.error || 'Payment proof validation failed');
+      }
+    } catch (error) {
+      console.error('Content page: Payment proof validation failed:', error);
+      setState(prev => ({
+        ...prev,
+        error: 'Payment completed but access validation failed. Please try again.',
+        loading: false
+      }));
     }
-
-    const paymentDetails = state.paymentInfo.accepts[0];
-    
-    // For now, show detailed instructions for manual payment
-    // In a full implementation, this would integrate with x402-fetch or x402-axios
-    const instructions = `
-To access this content, you need to make a payment using the x402 protocol:
-
-1. PAYMENT DETAILS:
-   • Amount: ${paymentDetails.maxAmountRequired} USDC (smallest unit)
-   • USD Equivalent: $${state.contentInfo?.price?.usd.toFixed(2)}
-   • Recipient: ${paymentDetails.payTo}
-   • Network: ${paymentDetails.network}
-   • Token: ${paymentDetails.asset}
-
-2. PAYMENT OPTIONS:
-   
-   Option A - Use x402 Libraries (Recommended):
-   • Install: npm install x402-fetch viem
-   • Use the x402-fetch library to automatically handle payment
-   • See documentation: https://www.npmjs.com/package/x402-fetch
-   
-   Option B - Manual Payment:
-   • Send ${paymentDetails.maxAmountRequired} USDC to ${paymentDetails.payTo}
-   • On ${paymentDetails.network} network
-   • After payment, you'll receive access automatically
-
-3. GATEWAY URL:
-   ${paymentDetails.resource}
-
-This content uses Pinata's x402 protocol for secure, decentralized payments.
-    `;
-    
-    alert(instructions);
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  // Handle payment error
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    setState(prev => ({
+      ...prev,
+      error: `Payment failed: ${error}`,
+      loading: false
+    }));
   };
 
-  const getFileIcon = (mimeType: string): string => {
-    if (mimeType.includes('pdf')) return '📄';
-    if (mimeType.includes('image')) return '🖼️';
-    if (mimeType.includes('video')) return '🎥';
-    if (mimeType.includes('audio')) return '🎵';
-    if (mimeType.includes('text')) return '📝';
-    return '📁';
+  // Handle content access error
+  const handleContentAccessError = (error: string) => {
+    console.error('Content access error:', error);
+    setState(prev => ({
+      ...prev,
+      error: `Content access failed: ${error}`,
+      accessGranted: false
+    }));
   };
 
-  const renderContent = () => {
-    if (!state.content || !state.contentInfo) return null;
-
-    const { mimeType } = state.contentInfo;
-
-    if (mimeType.startsWith('image/')) {
-      return (
-        <div className="text-center">
-          <img 
-            src={state.content} 
-            alt={state.contentInfo.name}
-            className="max-w-full h-auto rounded-lg shadow-lg mx-auto"
-          />
-        </div>
-      );
-    }
-
-    if (mimeType === 'application/pdf') {
-      return (
-        <div className="w-full h-96">
-          <iframe 
-            src={state.content} 
-            className="w-full h-full border rounded-lg"
-            title={state.contentInfo.name}
-          />
-        </div>
-      );
-    }
-
-    if (mimeType.startsWith('text/')) {
-      return (
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <iframe 
-            src={state.content} 
-            className="w-full h-64 border-0"
-            title={state.contentInfo.name}
-          />
-        </div>
-      );
-    }
-
-    // For other file types, show download link
-    return (
-      <div className="text-center p-8 bg-gray-50 rounded-lg">
-        <div className="text-6xl mb-4">{getFileIcon(mimeType)}</div>
-        <p className="text-gray-600 mb-4">Content ready for download</p>
-        <a 
-          href={state.content}
-          download={state.contentInfo.name}
-          className="btn-primary px-6 py-3"
-        >
-          📥 Download {state.contentInfo.name}
-        </a>
-      </div>
-    );
+  // Retry the entire content access flow
+  const retryContentAccess = () => {
+    setState(prev => ({
+      ...prev,
+      error: null,
+      loading: true
+    }));
+    attemptContentAccess();
   };
 
   return (
@@ -286,7 +311,7 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
               <h3 className="text-lg font-semibold text-red-800 mb-2">Content Access Failed</h3>
               <p className="text-red-700 mb-4">{state.error}</p>
               <button
-                onClick={attemptContentAccess}
+                onClick={retryContentAccess}
                 className="btn-error px-6 py-2 mr-4"
               >
                 🔄 Try Again
@@ -305,7 +330,7 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
               {/* Content Header */}
               <div className="flex items-start mb-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl mr-6">
-                  {getFileIcon(state.contentInfo.mimeType)}
+                  {getContentIcon(state.contentInfo.mimeType)}
                 </div>
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -338,8 +363,8 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
                   <div className="bg-white rounded-lg p-4 mb-4">
                     <h4 className="font-semibold text-gray-900 mb-2">Payment Details (x402 Protocol):</h4>
                     <div className="text-sm text-gray-700 space-y-1">
-                      <p><strong>Price:</strong> ${state.contentInfo.price?.usd.toFixed(2)} USDC</p>
-                      <p><strong>Amount Required:</strong> {state.paymentInfo.accepts[0].maxAmountRequired} USDC (smallest unit)</p>
+                      <p><strong>Price:</strong> {formatUsdAmount(state.contentInfo.price?.usd || 0)}</p>
+                      <p><strong>Amount Required:</strong> {formatUsdcWithEquivalent(state.paymentInfo.accepts[0].maxAmountRequired)}</p>
                       <p><strong>Network:</strong> {state.paymentInfo.accepts[0].network}</p>
                       <p><strong>Pay To:</strong> {state.paymentInfo.accepts[0].payTo}</p>
                       <p><strong>Token Contract:</strong> {state.paymentInfo.accepts[0].asset}</p>
@@ -353,17 +378,44 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
                   </div>
                 )}
 
-                <div className="flex gap-4">
-                  <button
-                    onClick={handlePayment}
-                    className="btn-primary px-6 py-3"
-                  >
-                    💳 Pay ${state.contentInfo.price?.usd.toFixed(2)} USDC
-                  </button>
-                  <a href="/browse" className="btn-secondary px-6 py-3">
-                    ← Browse Other Content
-                  </a>
+                {/* Wallet Connection Section */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-yellow-800 mb-3">Connect Your Wallet to Pay</h4>
+                  <WalletConnector 
+                    className="max-w-md"
+                    onWalletConnect={(address, chainId) => {
+                      console.log('Wallet connected:', address, chainId);
+                    }}
+                  />
+                  {!isConnected && (
+                    <p className="text-sm text-yellow-700 mt-2">
+                      Connect your wallet to make payments using USDC tokens on Base Sepolia testnet.
+                    </p>
+                  )}
                 </div>
+
+                {/* Payment Button */}
+                {state.paymentInfo && state.paymentInfo.accepts && state.paymentInfo.accepts[0] && (
+                  <div className="flex gap-4">
+                    <PaymentButton
+                      paymentInfo={{
+                        amount: state.paymentInfo.accepts[0].maxAmountRequired,
+                        recipient: state.paymentInfo.accepts[0].payTo,
+                        network: 'base-sepolia',
+                        asset: BASE_SEPOLIA_USDC_ADDRESS,
+                        gatewayUrl: state.paymentInfo.accepts[0].resource,
+                        description: `Payment for ${state.contentInfo.name}`
+                      }}
+                      walletAddress={address}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentError={handlePaymentError}
+                      disabled={!isConnected}
+                    />
+                    <a href="/browse" className="btn-secondary px-6 py-3">
+                      ← Browse Other Content
+                    </a>
+                  </div>
+                )}
               </div>
 
               {/* x402 Protocol Info */}
@@ -377,7 +429,7 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
                 <div className="text-xs text-blue-700 space-y-1">
                   <p><strong>How it works:</strong></p>
                   <p>1. Request content → Get payment requirements (402 response)</p>
-                  <p>2. Make USDC payment → Receive payment proof</p>
+                  <p>2. Make USDC token payment → Receive payment proof</p>
                   <p>3. Access content → Using payment proof header</p>
                 </div>
                 
@@ -392,13 +444,21 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
         )}
 
         {/* Content Access Granted */}
-        {state.accessGranted && state.contentInfo && (
+        {state.accessGranted && state.contentInfo && (() => {
+          console.log('Content page: Rendering access granted section with state:', {
+            accessGranted: state.accessGranted,
+            hasPaymentProof: !!state.paymentProof,
+            paymentProofValue: state.paymentProof,
+            contentInfoName: state.contentInfo?.name
+          });
+          return true;
+        })() && (
           <div className="max-w-4xl mx-auto">
             <div className="card p-8">
               {/* Content Header */}
               <div className="flex items-start mb-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-2xl mr-6">
-                  {getFileIcon(state.contentInfo.mimeType)}
+                  {getContentIcon(state.contentInfo.mimeType)}
                 </div>
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -427,9 +487,26 @@ This content uses Pinata's x402 protocol for secure, decentralized payments.
                 </div>
               </div>
 
-              {/* Content Display */}
+              {/* Content Display using ContentViewer */}
               <div className="mb-8">
-                {renderContent()}
+                {(() => {
+                  console.log('Content page: Rendering ContentViewer with props:', {
+                    cid,
+                    hasPaymentProof: !!(state.paymentProof),
+                    paymentProofValue: state.paymentProof,
+                    paymentProofLength: state.paymentProof?.length,
+                    autoAccessAfterPayment: !!state.paymentProof,
+                    contentInfoName: state.contentInfo?.name
+                  });
+                  return null;
+                })()}
+                <ContentViewer
+                  cid={cid}
+                  paymentProof={state.paymentProof || undefined}
+                  contentInfo={state.contentInfo}
+                  onAccessError={handleContentAccessError}
+                  autoAccessAfterPayment={!!state.paymentProof}
+                />
               </div>
 
               {/* Actions */}

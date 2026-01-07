@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PaymentInstruction, PaymentInstructionFormData } from '@/lib/types'
 import { validatePaymentInstructionForm } from '@/lib/validation'
-import { parseUsdAmount, convertUsdToUsdc } from '@/lib/pricing'
+import { parseUsdAmount, convertUsdToUsdc, formatUsdcWithEquivalent } from '@/lib/pricing'
 
 interface PaymentInstructionFormProps {
   initialData?: Partial<PaymentInstruction>
@@ -62,7 +62,7 @@ export default function PaymentInstructionForm({
       if (priceUSD > 0) {
         try {
           const usdcAmount = convertUsdToUsdc(priceUSD)
-          setUsdcPreview(`${parseInt(usdcAmount).toLocaleString()} USDC`)
+          setUsdcPreview(formatUsdcWithEquivalent(usdcAmount))
         } catch (error) {
           setUsdcPreview('')
         }
@@ -146,7 +146,7 @@ export default function PaymentInstructionForm({
       // Update USDC preview
       try {
         const usdcAmount = convertUsdToUsdc(parsed.amount)
-        setUsdcPreview(`${parseInt(usdcAmount).toLocaleString()} USDC`)
+        setUsdcPreview(formatUsdcWithEquivalent(usdcAmount))
       } catch (error) {
         setUsdcPreview('Invalid amount')
       }
@@ -243,7 +243,7 @@ export default function PaymentInstructionForm({
                 Testing Environment
               </p>
               <p className="text-xs text-yellow-700">
-                This uses Base Sepolia testnet USDC. No real money will be charged.
+                This uses Base Sepolia testnet USDC tokens. No real money will be charged.
               </p>
             </div>
           </div>
@@ -329,7 +329,7 @@ export default function PaymentInstructionForm({
             </div>
             {usdcPreview && !errors.priceUSD && (
               <p className="mt-2 text-sm text-gray-600 animate-fade-in">
-                💎 Equivalent: {usdcPreview} (Base Sepolia testnet)
+                💎 Equivalent: {usdcPreview}
               </p>
             )}
             {errors.priceUSD && (
@@ -357,7 +357,7 @@ export default function PaymentInstructionForm({
               <p className="mt-2 text-sm text-red-600 animate-fade-in">{errors.walletAddress}</p>
             )}
             <p className="mt-2 text-xs text-gray-500">
-              Enter your Ethereum wallet address to receive testnet USDC payments
+              Enter your Ethereum wallet address to receive testnet USDC token payments
             </p>
           </div>
 
@@ -369,7 +369,7 @@ export default function PaymentInstructionForm({
             </div>
             <div className="text-xs text-blue-700 space-y-1">
               <p>• Network: Base Sepolia (Testnet)</p>
-              <p>• Token: USDC (0x036CbD53842c5426634e7929541eC2318f3dCF7e)</p>
+              <p>• Token: USDC tokens (0x036CbD53842c5426634e7929541eC2318f3dCF7e)</p>
               <p>• Environment: Testing only - no real money involved</p>
             </div>
           </div>

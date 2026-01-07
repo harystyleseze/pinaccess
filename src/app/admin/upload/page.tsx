@@ -423,7 +423,7 @@ export default function UploadPage() {
                 </div>
                 {formData.price > 0 && (
                   <p className="mt-2 text-sm text-gray-500 animate-fade-in">
-                    💳 Buyers will pay {formatUsdAmount(formData.price)} in USDC
+                    💳 Buyers will pay {formatUsdAmount(formData.price)} in USDC tokens
                   </p>
                 )}
                 {formErrors.price && (
@@ -446,7 +446,7 @@ export default function UploadPage() {
                   placeholder="0x..."
                 />
                 <p className="mt-2 text-sm text-gray-500">
-                  🌐 USDC payments will be sent to this address on Base Sepolia network
+                  🌐 USDC token payments will be sent to this address on Base Sepolia network
                 </p>
                 {formErrors.walletAddress && (
                   <p className="mt-2 text-sm text-red-600 font-medium animate-slide-down">⚠️ {formErrors.walletAddress}</p>

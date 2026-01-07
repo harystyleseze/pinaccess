@@ -7,7 +7,7 @@ import Navigation from '@/components/layout/Navigation'
 import CIDManager from '@/components/ui/CIDManager'
 import { NetworkBadge } from '@/components/ui/NetworkIndicator'
 import { PaymentInstruction, AttachedCID, Document, PaymentInstructionResponse, AttachedCIDsResponse, DocumentListResponse } from '@/lib/types'
-import { formatUsdAmount, convertUsdcToUsd } from '@/lib/pricing'
+import { formatUsdAmount, convertUsdcToUsd, formatUsdcWithEquivalent } from '@/lib/pricing'
 
 export default function PaymentInstructionDetailPage() {
   const router = useRouter()
@@ -168,9 +168,9 @@ export default function PaymentInstructionDetailPage() {
     
     try {
       const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
-      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.max_amount_required).toLocaleString()} USDC)`
+      return `${formatUsdAmount(usdAmount)} (${formatUsdcWithEquivalent(requirement.max_amount_required)})`
     } catch {
-      return `${parseInt(requirement.max_amount_required).toLocaleString()} USDC`
+      return formatUsdcWithEquivalent(requirement.max_amount_required)
     }
   }
 

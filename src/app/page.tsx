@@ -25,7 +25,7 @@ export default function Home() {
             
             <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
               Upload PDFs, ebooks, and documents to secure IPFS storage. Set your price. 
-              Share payment links. Get paid in USDC automatically—no accounts needed.
+              Share payment links. Get paid in USDC tokens automatically—no accounts needed.
             </p>
             
             {/* CTA Buttons */}
@@ -56,7 +56,7 @@ export default function Home() {
                 <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                   <span className="text-white text-sm font-bold">$</span>
                 </div>
-                <span className="text-gray-600 font-semibold">USDC Payments</span>
+                <span className="text-gray-600 font-semibold">USDC Token Payments</span>
               </div>
             </div>
           </div>
@@ -101,10 +101,10 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Set Your Price</h3>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Configure pricing in USD and receive payments in USDC on Base Sepolia network. You control the value.
+                Configure pricing in USD and receive payments in USDC tokens on Base Sepolia network. You control the value.
               </p>
               <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4">
-                <p className="text-green-800 font-semibold">$5.00 USD = 5,000,000 USDC</p>
+                <p className="text-green-800 font-semibold">$5.00 USD = 5.000000 USDC tokens</p>
               </div>
             </div>
 
@@ -166,7 +166,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Payments</h3>
-                    <p className="text-gray-600">Automatic USDC payments on Base Sepolia. No waiting periods.</p>
+                    <p className="text-gray-600">Automatic USDC token payments on Base Sepolia. No waiting periods.</p>
                   </div>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function Home() {
               Monetize your digital documents with IPFS and crypto payments
             </p>
             <p className="text-sm text-gray-500">
-              Built with ❤️ using Pinata IPFS, Base Sepolia, and USDC
+              Built with ❤️ using Pinata IPFS, Base Sepolia, and USDC tokens
             </p>
           </div>
         </footer>

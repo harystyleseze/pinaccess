@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pinataClient } from '@/lib/pinata';
+import { getX402GatewayUrl } from '@/lib/gateway-config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
             usd: 0,
             usdc: '0'
           },
-          gatewayUrl: `${process.env.PINATA_GATEWAY_URL || 'https://gateway.mypinata.cloud'}/x402/cid/${doc.cid}`,
+          gatewayUrl: getX402GatewayUrl(doc.cid),
           metadata: {
             creator: doc.metadata.creator,
             status: 'monetized' as const, // Override status since these are monetized

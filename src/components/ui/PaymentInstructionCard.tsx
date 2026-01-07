@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { PaymentInstruction } from '@/lib/types'
-import { formatUsdAmount, convertUsdcToUsd } from '@/lib/pricing'
+import { formatUsdAmount, convertUsdcToUsd, formatUsdcWithEquivalent } from '@/lib/pricing'
 
 interface PaymentInstructionCardProps {
   paymentInstruction: PaymentInstruction
@@ -59,9 +59,9 @@ export default function PaymentInstructionCard({
     
     try {
       const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
-      return `${formatUsdAmount(usdAmount)} (${parseInt(requirement.max_amount_required).toLocaleString()} USDC)`
+      return `${formatUsdAmount(usdAmount)} (${formatUsdcWithEquivalent(requirement.max_amount_required)})`
     } catch {
-      return `${parseInt(requirement.max_amount_required).toLocaleString()} USDC`
+      return formatUsdcWithEquivalent(requirement.max_amount_required)
     }
   }
 
