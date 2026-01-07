@@ -177,7 +177,8 @@ export class X402PaymentClient {
       // 3. Prompt wallet to SIGN (not transfer) the authorization
       // 4. Encode signed authorization as X-Payment header
       // 5. Retry request with payment proof
-      const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as any);
+      // Using type assertion as Signer since wagmi WalletClient implements the required SignerWallet interface
+      const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as unknown as Parameters<typeof wrapFetchWithPayment>[1]);
 
       console.log('x402: Making request with automatic payment handling...');
 
@@ -398,7 +399,7 @@ export class X402PaymentClient {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -421,19 +422,22 @@ export class X402PaymentClient {
   /**
    * Categorize errors for better user experience
    */
-  private categorizeError(error: any): PaymentExecutionError {
+  private categorizeError(error: unknown): PaymentExecutionError {
     if (error instanceof PaymentExecutionError) {
       return error;
     }
 
+    // Extract error for passing to PaymentExecutionError
+    const errorInstance = error instanceof Error ? error : undefined;
+
     // Check for common error patterns
-    const errorMessage = error?.message?.toLowerCase() || '';
+    const errorMessage = (error instanceof Error ? error.message : String(error)).toLowerCase();
 
     if (errorMessage.includes('user rejected') || errorMessage.includes('denied')) {
       return new PaymentExecutionError(
         PaymentErrorType.TRANSACTION_REJECTED,
         'Transaction was rejected by user',
-        error
+        errorInstance
       );
     }
 
@@ -441,7 +445,7 @@ export class X402PaymentClient {
       return new PaymentExecutionError(
         PaymentErrorType.INSUFFICIENT_BALANCE,
         'Insufficient balance for transaction',
-        error
+        errorInstance
       );
     }
 
@@ -449,7 +453,7 @@ export class X402PaymentClient {
       return new PaymentExecutionError(
         PaymentErrorType.NETWORK_ERROR,
         'Network error occurred. Please try again.',
-        error
+        errorInstance
       );
     }
 
@@ -457,7 +461,7 @@ export class X402PaymentClient {
       return new PaymentExecutionError(
         PaymentErrorType.WRONG_NETWORK,
         'Please switch to Base Sepolia network',
-        error
+        errorInstance
       );
     }
 
@@ -465,7 +469,7 @@ export class X402PaymentClient {
     return new PaymentExecutionError(
       PaymentErrorType.UNKNOWN_ERROR,
       'An unexpected error occurred. Please try again.',
-      error
+      errorInstance
     );
   }
 }
