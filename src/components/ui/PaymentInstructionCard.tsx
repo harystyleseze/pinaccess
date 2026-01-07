@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Eye, Pencil, Trash2, AlertTriangle } from 'lucide-react'
 import { PaymentInstruction } from '@/lib/types'
 import { formatUsdAmount, convertUsdcToUsd, formatUsdcWithEquivalent } from '@/lib/pricing'
 
@@ -12,12 +13,12 @@ interface PaymentInstructionCardProps {
   attachedCIDCount: number
 }
 
-export default function PaymentInstructionCard({ 
-  paymentInstruction, 
-  onEdit, 
-  onDelete, 
-  onViewDetails, 
-  attachedCIDCount 
+export default function PaymentInstructionCard({
+  paymentInstruction,
+  onEdit,
+  onDelete,
+  onViewDetails,
+  attachedCIDCount
 }: PaymentInstructionCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -56,7 +57,7 @@ export default function PaymentInstructionCard({
   const formatPrice = () => {
     const requirement = getPaymentRequirement()
     if (!requirement) return 'No price set'
-    
+
     try {
       const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
       return `${formatUsdAmount(usdAmount)} (${formatUsdcWithEquivalent(requirement.max_amount_required)})`
@@ -70,11 +71,11 @@ export default function PaymentInstructionCard({
     return requirement?.pay_to || 'No wallet set'
   }
 
-  const getStatusColor = () => {
+  const getStatusBadge = () => {
     if (attachedCIDCount > 0) {
-      return 'text-green-600 bg-green-50'
+      return 'badge-success'
     }
-    return 'text-blue-600 bg-blue-50'
+    return 'badge-info'
   }
 
   const getStatusText = () => {
@@ -85,107 +86,112 @@ export default function PaymentInstructionCard({
   }
 
   return (
-    <div className="card-gradient p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-slide-up">
+    <div className="card p-6 animate-slide-up">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <span className="text-3xl animate-bounce-gentle">💳</span>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 truncate max-w-xs">
-              {paymentInstruction.name}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              📅 Created {formatDate(paymentInstruction.createdAt)}
-            </p>
-          </div>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate max-w-xs">
+            {paymentInstruction.name}
+          </h3>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            Created {formatDate(paymentInstruction.createdAt)}
+          </p>
         </div>
-        <span className={`px-4 py-2 rounded-full text-xs font-semibold animate-fade-in ${getStatusColor()}`}>
+        <span className={`badge ${getStatusBadge()}`}>
           {getStatusText()}
         </span>
       </div>
 
       {/* Description */}
-      <div className="mb-6">
-        <p className="text-gray-700 text-sm leading-relaxed">
+      <div className="mb-4">
+        <p className="text-[var(--text-secondary)] text-sm leading-relaxed line-clamp-2">
           {paymentInstruction.description}
         </p>
       </div>
 
       {/* Payment Details */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-2 mb-4">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">💰 Price:</span>
-          <span className="text-gray-900 font-semibold">
+          <span className="text-[var(--text-muted)]">Price</span>
+          <span className="text-[var(--text-primary)] font-medium">
             {formatPrice()}
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">🔗 Wallet:</span>
-          <span className="text-gray-900 font-mono text-xs truncate max-w-xs">
+          <span className="text-[var(--text-muted)]">Wallet</span>
+          <span className="text-[var(--text-primary)] font-mono text-xs truncate max-w-[180px]">
             {getWalletAddress()}
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">🌐 Network:</span>
-          <span className="text-gray-900 font-semibold">
+          <span className="text-[var(--text-muted)]">Network</span>
+          <span className="text-[var(--text-primary)]">
             Base Sepolia (Testnet)
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">📄 Documents:</span>
-          <span className="text-gray-900 font-semibold">
+          <span className="text-[var(--text-muted)]">Documents</span>
+          <span className="text-[var(--text-primary)]">
             {attachedCIDCount} attached
           </span>
         </div>
       </div>
 
       {/* Testnet Warning */}
-      <div className="mb-6 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 animate-fade-in">
-        <div className="flex items-center space-x-2">
-          <span className="text-yellow-600">⚠️</span>
-          <p className="text-xs text-yellow-800 font-medium">
+      <div className="mb-4 p-3 status-warning rounded-lg">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <p className="text-xs font-medium">
             Testing Environment - Uses Base Sepolia testnet USDC
           </p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         <button
           onClick={() => onViewDetails(paymentInstruction.id)}
-          className="flex-1 btn-secondary text-sm transform hover:scale-105 transition-all duration-200"
+          className="flex-1 btn-secondary btn-sm"
         >
-          👁️ View Details
+          <Eye className="w-4 h-4" />
+          View
         </button>
         <button
           onClick={() => onEdit(paymentInstruction.id)}
-          className="btn-primary text-sm transform hover:scale-105 transition-all duration-200"
+          className="btn-primary btn-sm"
         >
-          ✏️ Edit
+          <Pencil className="w-4 h-4" />
+          Edit
         </button>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className={`text-sm transform hover:scale-105 transition-all duration-200 ${
-            showDeleteConfirm 
-              ? 'btn-danger' 
-              : 'btn-secondary hover:bg-red-50 hover:text-red-600'
+          className={`btn-sm ${
+            showDeleteConfirm
+              ? 'btn-error'
+              : 'btn-secondary hover:bg-[var(--error-light)] hover:text-[var(--error)] hover:border-[var(--error)]'
           }`}
         >
           {isDeleting ? (
-            <>🔄 Deleting...</>
+            <>
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Deleting...
+            </>
           ) : showDeleteConfirm ? (
-            <>⚠️ Confirm Delete</>
+            'Confirm Delete'
           ) : (
-            <>🗑️ Delete</>
+            <>
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </>
           )}
         </button>
       </div>
 
       {showDeleteConfirm && (
-        <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200 animate-fade-in">
-          <p className="text-sm text-red-800 mb-3">
-            Are you sure you want to delete this payment instruction? 
+        <div className="mt-4 p-3 status-error rounded-lg animate-fade-in">
+          <p className="text-sm mb-3">
+            Are you sure you want to delete this payment instruction?
             {attachedCIDCount > 0 && (
               <span className="font-semibold">
                 {' '}This will also detach {attachedCIDCount} document{attachedCIDCount === 1 ? '' : 's'}.
@@ -195,14 +201,14 @@ export default function PaymentInstructionCard({
           <div className="flex gap-2">
             <button
               onClick={() => setShowDeleteConfirm(false)}
-              className="btn-secondary text-xs"
+              className="btn-secondary btn-sm"
             >
               Cancel
             </button>
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="btn-danger text-xs"
+              className="btn-error btn-sm"
             >
               {isDeleting ? 'Deleting...' : 'Yes, Delete'}
             </button>

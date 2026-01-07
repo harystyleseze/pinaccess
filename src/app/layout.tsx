@@ -10,8 +10,12 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "PinAccess - Monetize Your Contents",
-  description: "Upload, price, and monetize your digital documents with Pinata and x402 payment integration.",
+  title: "PinAccess - Monetize Your Digital Content",
+  description: "Upload, price, and monetize your digital documents with Pinata IPFS and x402 payment integration. Get paid in USDC tokens automatically.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -20,10 +24,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${manrope.variable} font-sans antialiased`}
-      >
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                  } else {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={`${manrope.variable} font-sans antialiased`}>
         <WalletProvider>
           {children}
         </WalletProvider>

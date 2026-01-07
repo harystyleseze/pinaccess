@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Copy, Check, Eye } from 'lucide-react'
 import { Document } from '@/lib/types'
 
 interface DocumentCardProps {
@@ -14,7 +15,7 @@ export default function DocumentCard({ document, onCopyUrl, onViewDetails }: Doc
 
   const handleCopyUrl = async () => {
     if (!document.gatewayUrl) return
-    
+
     try {
       await navigator.clipboard.writeText(document.gatewayUrl)
       onCopyUrl(document.gatewayUrl)
@@ -38,76 +39,56 @@ export default function DocumentCard({ document, onCopyUrl, onViewDetails }: Doc
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     })
   }
 
-  const getStatusColor = (status: string): string => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'monetized':
-        return 'text-green-600 bg-green-50'
+        return 'badge-success'
       case 'uploaded':
-        return 'text-blue-600 bg-blue-50'
+        return 'badge-info'
       case 'error':
-        return 'text-red-600 bg-red-50'
+        return 'badge-error'
       default:
-        return 'text-gray-600 bg-gray-50'
+        return 'badge-neutral'
     }
   }
 
-  const getMimeTypeIcon = (mimeType: string): string => {
-    if (mimeType.includes('pdf')) return '📄'
-    if (mimeType.includes('epub')) return '📚'
-    if (mimeType.includes('text')) return '📝'
-    return '📄'
-  }
-
   return (
-    <div className="card-gradient p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-slide-up">
+    <div className="card p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <span className="text-3xl animate-bounce-gentle">{getMimeTypeIcon(document.mimeType)}</span>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 truncate max-w-xs">
-              {document.name}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              📊 {formatFileSize(document.size)} • 📅 {formatDate(document.createdAt)}
-            </p>
-          </div>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 min-w-0 pr-3">
+          <h3 className="text-base font-semibold text-[var(--text-primary)] truncate">
+            {document.name}
+          </h3>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            {formatFileSize(document.size)} · {formatDate(document.createdAt)}
+          </p>
         </div>
-        <span className={`px-4 py-2 rounded-full text-xs font-semibold animate-fade-in ${getStatusColor(document.metadata.status)}`}>
+        <span className={`badge ${getStatusBadge(document.metadata.status)}`}>
           {document.metadata.status}
         </span>
       </div>
 
       {/* Document Info */}
-      <div className="space-y-3 mb-6">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">👤 Creator:</span>
-          <span className="text-gray-900 font-semibold">{document.metadata.creator}</span>
+      <div className="space-y-2 mb-4 text-sm">
+        <div className="flex justify-between">
+          <span className="text-[var(--text-muted)]">Creator</span>
+          <span className="text-[var(--text-primary)] font-medium">{document.metadata.creator}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 font-medium">🔗 CID:</span>
-          <span className="text-gray-900 font-mono text-xs truncate max-w-xs">
+        <div className="flex justify-between">
+          <span className="text-[var(--text-muted)]">CID</span>
+          <span className="text-[var(--text-secondary)] font-mono text-xs truncate max-w-[180px]">
             {document.cid}
           </span>
         </div>
         {document.isMonetized && document.price && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 font-medium">💰 Price:</span>
-            <span className="text-gray-900 font-semibold">
-              ${document.price.usd} ({document.price.usdc} USDC)
-            </span>
-          </div>
-        )}
-        {document.walletAddress && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 font-medium">🔗 Wallet:</span>
-            <span className="text-gray-900 font-mono text-xs truncate max-w-xs">
-              {document.walletAddress}
+          <div className="flex justify-between">
+            <span className="text-[var(--text-muted)]">Price</span>
+            <span className="text-[var(--success)] font-semibold">
+              ${document.price.usd}
             </span>
           </div>
         )}
@@ -115,42 +96,30 @@ export default function DocumentCard({ document, onCopyUrl, onViewDetails }: Doc
 
       {/* Gateway URL */}
       {document.gatewayUrl && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-blue-600 mb-2 font-medium">🔗 Gateway URL:</p>
-              <p className="text-sm text-blue-900 font-mono truncate">
-                {document.gatewayUrl}
-              </p>
-            </div>
-            <button
-              onClick={handleCopyUrl}
-              className={`ml-4 px-4 py-2 text-xs transition-all duration-200 transform hover:scale-105 ${
-                copySuccess ? 'btn-success' : 'btn-primary'
-              }`}
-            >
-              {copySuccess ? '✅ Copied' : '📋 Copy'}
-            </button>
-          </div>
+        <div className="mb-4 p-3 rounded-lg bg-[var(--primary-light)]">
+          <p className="text-xs text-[var(--text-muted)] mb-1">Gateway URL</p>
+          <p className="text-sm text-[var(--brand-teal)] font-mono truncate">
+            {document.gatewayUrl}
+          </p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex gap-2">
         <button
           onClick={() => onViewDetails(document.id)}
-          className="flex-1 btn-secondary text-sm transform hover:scale-105 transition-all duration-200"
+          className="btn-secondary btn-sm flex-1"
         >
-          👁️ View Details
+          <Eye className="w-4 h-4" />
+          View
         </button>
         {document.gatewayUrl && (
           <button
             onClick={handleCopyUrl}
-            className={`text-sm transform hover:scale-105 transition-all duration-200 ${
-              copySuccess ? 'btn-success' : 'btn-accent'
-            }`}
+            className={`btn-sm ${copySuccess ? 'btn-success' : 'btn-primary'}`}
           >
-            {copySuccess ? '✅ URL Copied' : '🔗 Copy URL'}
+            {copySuccess ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copySuccess ? 'Copied' : 'Copy URL'}
           </button>
         )}
       </div>

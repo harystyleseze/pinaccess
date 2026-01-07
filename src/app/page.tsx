@@ -1,62 +1,55 @@
 import Link from "next/link";
+import Image from "next/image";
 import Navigation from "@/components/layout/Navigation";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       <div className="content-max-width section-padding">
         {/* Hero Section */}
         <section className="py-20 lg:py-32">
-          <div className="text-center max-w-5xl mx-auto animate-fade-in">
-            <div className="mb-8">
-              <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 text-primary font-semibold text-sm border border-primary/20">
-                🚀 Powered by Pinata & x402 payment
+          <div className="text-center max-w-4xl mx-auto animate-fade-in">
+            <div className="mb-6">
+              <span className="inline-flex items-center px-4 py-2 rounded-full bg-[var(--primary-light)] text-[var(--brand-teal)] font-medium text-sm">
+                Powered by Pinata & x402
               </span>
             </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-              Monetize Your
-              <span className="bg-gradient-to-r from-primary via-accent to-purple-600 bg-clip-text text-transparent block mt-2">
-                Digital Documents
-              </span>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--text-primary)] mb-6 leading-tight">
+              Monetize Your{" "}
+              <span className="text-gradient">Digital Content</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Upload PDFs, ebooks, and documents to secure IPFS storage. Set your price. 
-              Share payment links. Get paid in USDC tokens automatically—no accounts needed.
+
+            <p className="text-lg sm:text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">
+              Upload PDFs and documents to secure IPFS storage. Set your price in USD.
+              Get paid in USDC tokens automatically—no accounts needed.
             </p>
-            
+
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-              <Link href="/admin/upload" className="btn-primary text-lg px-8 py-4">
-                🚀 Start Monetizing
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Link href="/admin/upload" className="btn-primary btn-lg">
+                Start Monetizing
               </Link>
-              <Link href="/admin" className="btn-secondary text-lg px-8 py-4">
-                📊 View Dashboard
+              <Link href="/admin" className="btn-secondary btn-lg">
+                View Dashboard
               </Link>
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">P</span>
-                </div>
-                <span className="text-gray-600 font-semibold">Pinata IPFS</span>
+            <div className="flex flex-wrap justify-center items-center gap-6 text-[var(--text-muted)] text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[var(--brand-teal)]" />
+                <span>Pinata IPFS</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">B</span>
-                </div>
-                <span className="text-gray-600 font-semibold">Base Sepolia</span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[var(--brand-cyan)]" />
+                <span>Base Sepolia</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">$</span>
-                </div>
-                <span className="text-gray-600 font-semibold">USDC Token Payments</span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[var(--success)]" />
+                <span>USDC Payments</span>
               </div>
             </div>
           </div>
@@ -65,62 +58,50 @@ export default function Home() {
         {/* Features Section */}
         <section className="py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
               How It Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
               Three simple steps to start earning from your digital content
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Feature 1 */}
-            <div className="card-gradient p-8 text-center animate-slide-up">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                <svg className="w-10 h-10 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Upload & Store</h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Securely upload your contents to private Pinata storage with Pinata&apos;s enterprise-grade infrastructure.
+            <div className="card p-8 text-center animate-slide-up">
+              <div className="text-5xl font-bold text-gradient mb-4">1</div>
+              <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Upload & Store</h3>
+              <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
+                Securely upload your content to private Pinata storage with enterprise-grade infrastructure.
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">PDF</span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">EPUB</span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">MOBI</span>
+                <span className="badge badge-info">PDF</span>
+                <span className="badge badge-info">EPUB</span>
+                <span className="badge badge-info">MOBI</span>
               </div>
             </div>
 
             {/* Feature 2 */}
-            <div className="card-gradient p-8 text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                <svg className="w-10 h-10 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Set Your Price</h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Configure pricing in USD and receive payments in USDC tokens on Base Sepolia network. You control the value.
+            <div className="card p-8 text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="text-5xl font-bold text-gradient mb-4">2</div>
+              <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Set Your Price</h3>
+              <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
+                Configure pricing in USD and receive payments in USDC on Base network. You control the value.
               </p>
-              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4">
-                <p className="text-green-800 font-semibold">$5.00 USD = 5.000000 USDC tokens</p>
+              <div className="p-3 rounded-lg bg-[var(--success-light)]">
+                <p className="text-sm font-medium text-[var(--success)]">$5.00 USD = 5.000000 USDC</p>
               </div>
             </div>
 
             {/* Feature 3 */}
-            <div className="card-gradient p-8 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                <svg className="w-10 h-10 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Share & Earn</h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Get a secure payment link that handles everything automatically. No accounts, no subscriptions needed.
+            <div className="card p-8 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="text-5xl font-bold text-gradient mb-4">3</div>
+              <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Share & Earn</h3>
+              <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
+                Get a secure payment link that handles everything automatically. No accounts or subscriptions.
               </p>
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-4">
-                <p className="text-purple-800 font-semibold text-sm">gateway.mypinata.cloud/x402/...</p>
+              <div className="p-3 rounded-lg bg-[var(--primary-light)]">
+                <p className="text-sm font-medium text-[var(--brand-teal)] truncate">gateway.mypinata.cloud/x402/...</p>
               </div>
             </div>
           </div>
@@ -128,68 +109,54 @@ export default function Home() {
 
         {/* Benefits Section */}
         <section className="py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-8">
                 Why Choose PinAccess?
               </h2>
               <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full bg-[var(--success)] mt-2 flex-shrink-0" />
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Platform Fees</h3>
-                    <p className="text-gray-600">Keep 100% of your earnings. Payments go directly to your wallet.</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">No Platform Fees</h3>
+                    <p className="text-[var(--text-secondary)] text-sm">Keep 100% of your earnings. Payments go directly to your wallet.</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full bg-[var(--brand-teal)] mt-2 flex-shrink-0" />
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure & Private</h3>
-                    <p className="text-gray-600">Your content stays private until payment is made. Built on Pinata.</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">Secure & Private</h3>
+                    <p className="text-[var(--text-secondary)] text-sm">Your content stays private until payment is made. Built on Pinata.</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full bg-[var(--brand-cyan)] mt-2 flex-shrink-0" />
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Payments</h3>
-                    <p className="text-gray-600">Automatic USDC token payments on Base Sepolia. No waiting periods.</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">Instant Payments</h3>
+                    <p className="text-[var(--text-secondary)] text-sm">Automatic USDC payments on Base Sepolia. No waiting periods.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="relative">
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-3xl p-8 border border-primary/20">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold">📄 My eBook.pdf</span>
-                    <span className="text-green-600 font-bold">$25.00</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold">📊 Business Plan.pdf</span>
-                    <span className="text-green-600 font-bold">$50.00</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold">🎨 Design Guide.epub</span>
-                    <span className="text-green-600 font-bold">$15.00</span>
-                  </div>
-                  <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-white text-center">
-                    <p className="font-bold text-lg">Total Earnings: $90.00</p>
-                  </div>
+              <div className="card p-6 space-y-3">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-elevated)]">
+                  <span className="font-medium text-[var(--text-primary)]">My eBook.pdf</span>
+                  <span className="text-[var(--success)] font-semibold">$25.00</span>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-elevated)]">
+                  <span className="font-medium text-[var(--text-primary)]">Business Plan.pdf</span>
+                  <span className="text-[var(--success)] font-semibold">$50.00</span>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-elevated)]">
+                  <span className="font-medium text-[var(--text-primary)]">Design Guide.epub</span>
+                  <span className="text-[var(--success)] font-semibold">$15.00</span>
+                </div>
+                <div className="p-4 rounded-lg bg-gradient-to-r from-[var(--brand-teal)] to-[var(--brand-cyan)] text-center">
+                  <p className="text-white font-bold">Total Earnings: $90.00</p>
                 </div>
               </div>
             </div>
@@ -198,78 +165,83 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="py-20">
-          <div className="text-center bg-gradient-to-r from-primary to-accent rounded-3xl p-12 md:p-20 text-white">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <div className="text-center card p-12 md:p-16 bg-gradient-to-br from-[var(--brand-teal)] to-[var(--brand-cyan)]">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Ready to Start Earning?
             </h2>
-            <p className="text-xl md:text-2xl mb-10 opacity-90 max-w-3xl mx-auto">
+            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
               Join creators who are already monetizing their digital content with PinAccess
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link href="/admin/upload" className="bg-white text-primary hover:bg-gray-100 btn-pill text-lg px-8 py-4 font-bold">
-                🚀 Upload Your First Document
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href="/admin/upload"
+                className="btn-secondary bg-white text-[var(--brand-teal)] border-white hover:bg-white/90 btn-lg"
+              >
+                Upload Your First Document
               </Link>
-              <Link href="/admin" className="border-2 border-white text-white hover:bg-white hover:text-primary btn-pill text-lg px-8 py-4 font-bold">
-                📊 Explore Dashboard
+              <Link
+                href="/browse"
+                className="btn-ghost text-white hover:bg-white/10 btn-lg"
+              >
+                Browse Content
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Browse Content Section */}
+        {/* Content Types Section */}
         <section className="py-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
               Discover Premium Content
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-              Browse high-quality digital content from creators around the world. 
+            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
+              Browse high-quality digital content from creators around the world.
               Pay securely with crypto and access instantly.
             </p>
-            <Link href="/browse" className="btn-primary text-lg px-8 py-4 font-bold">
-              🔍 Browse Content Library
+            <Link href="/browse" className="btn-primary">
+              Browse Content Library
             </Link>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="card-gradient p-6 text-center">
-              <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Research Papers</h3>
-              <p className="text-gray-600">Academic research, whitepapers, and technical documentation</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card p-6 text-center">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Research Papers</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Academic research, whitepapers, and technical documentation</p>
             </div>
-            
-            <div className="card-gradient p-6 text-center">
-              <div className="text-4xl mb-4">🎨</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Digital Art</h3>
-              <p className="text-gray-600">High-resolution artwork, designs, and creative assets</p>
+
+            <div className="card p-6 text-center">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Digital Art</h3>
+              <p className="text-sm text-[var(--text-secondary)]">High-resolution artwork, designs, and creative assets</p>
             </div>
-            
-            <div className="card-gradient p-6 text-center">
-              <div className="text-4xl mb-4">📖</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">E-books & Guides</h3>
-              <p className="text-gray-600">Educational content, tutorials, and comprehensive guides</p>
+
+            <div className="card p-6 text-center">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">E-books & Guides</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Educational content, tutorials, and comprehensive guides</p>
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="py-12 border-t border-gray-200 mt-20">
+        <footer className="py-12 border-t border-[var(--border)] mt-12">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Image
+                src="/logo.png"
+                alt="PinAccess"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+              <span className="text-xl font-bold text-gradient">
                 PinAccess
               </span>
             </div>
-            <p className="text-gray-600 mb-4">
-              Monetize your digital contents with IPFS and crypto payments
+            <p className="text-[var(--text-secondary)] text-sm mb-2">
+              Monetize your digital content with IPFS and crypto payments
             </p>
-            <p className="text-sm text-gray-500">
-              Built using Pinata IPFS, Base Sepolia, and USDC tokens
+            <p className="text-xs text-[var(--text-muted)]">
+              Built with Pinata IPFS, Base Sepolia, and USDC
             </p>
           </div>
         </footer>

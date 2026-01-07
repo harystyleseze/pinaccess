@@ -1,6 +1,6 @@
 /**
  * ContentViewer Component
- * 
+ *
  * Displays content after successful payment using payment proof.
  * Handles different content types and provides download functionality.
  */
@@ -8,8 +8,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  accessContent, 
+import { Download, Lock, AlertCircle, FileText, RefreshCw } from 'lucide-react';
+import {
+  accessContent,
   accessContentAfterPayment,
   canDisplayInline,
   getContentIcon,
@@ -54,7 +55,7 @@ export function ContentViewer({
     if (cid && contentInfo) {
       // Check if content is free (no payment required)
       const isFreeContent = !contentInfo.price || contentInfo.price.usd === 0;
-      
+
       if (paymentProof) {
         console.log('ContentViewer: Payment proof available, accessing content...', {
           cid,
@@ -62,7 +63,7 @@ export function ContentViewer({
           autoAccessAfterPayment,
           paymentProofPreview: paymentProof.substring(0, 50) + '...'
         });
-        
+
         if (autoAccessAfterPayment) {
           accessContentAfterPaymentFlow();
         } else {
@@ -74,7 +75,7 @@ export function ContentViewer({
           contentName: contentInfo.name,
           price: contentInfo.price
         });
-        
+
         // For free content, we can access it directly without payment proof
         accessFreeContentFlow();
       } else {
@@ -117,11 +118,11 @@ export function ContentViewer({
       // Handle special cases where access is already granted
       if (paymentProof === 'access_already_granted' || paymentProof === 'stored_payment') {
         console.log('ContentViewer: Access already granted, accessing content directly...');
-        
+
         // Access content directly without payment proof
         const gatewayUrl = contentInfo?.gatewayUrl || `${getGatewayUrlWithFallback()}/x402/cid/${cid}`;
         const response = await fetch(gatewayUrl);
-        
+
         if (response.ok) {
           const blob = await response.blob();
           const contentUrl = URL.createObjectURL(blob);
@@ -147,14 +148,14 @@ export function ContentViewer({
 
       // Normal payment proof flow
       const result = await accessContent(cid, paymentProof, contentInfo);
-      
+
       console.log('ContentViewer: Content access result:', {
         success: result.success,
         hasContentUrl: !!result.contentUrl,
         contentType: result.contentType,
         error: result.error
       });
-      
+
       if (result.success) {
         setAccessResult(result);
         console.log('ContentViewer: Content access successful!');
@@ -187,15 +188,15 @@ export function ContentViewer({
     try {
       // For free content, we can access it directly from the regular gateway
       const directUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
-      
+
       console.log('ContentViewer: Accessing free content directly:', directUrl);
-      
+
       const response = await fetch(directUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to access free content: ${response.status} ${response.statusText}`);
       }
-      
+
       // Create blob URL for content
       const blob = await response.blob();
       const contentUrl = URL.createObjectURL(blob);
@@ -252,11 +253,11 @@ export function ContentViewer({
       // Handle special cases where access is already granted
       if (paymentProof === 'access_already_granted' || paymentProof === 'stored_payment') {
         console.log('ContentViewer: Access already granted, accessing content directly...');
-        
+
         // Access content directly without payment proof
         const gatewayUrl = contentInfo?.gatewayUrl || `${getGatewayUrlWithFallback()}/x402/cid/${cid}`;
         const response = await fetch(gatewayUrl);
-        
+
         if (response.ok) {
           const blob = await response.blob();
           const contentUrl = URL.createObjectURL(blob);
@@ -282,14 +283,14 @@ export function ContentViewer({
 
       // Normal payment proof flow
       const result = await accessContentAfterPayment(cid, paymentProof, contentInfo);
-      
+
       console.log('ContentViewer: Content access after payment result:', {
         success: result.success,
         hasContentUrl: !!result.contentUrl,
         contentType: result.contentType,
         error: result.error
       });
-      
+
       if (result.success) {
         setAccessResult(result);
         console.log('ContentViewer: Content access after payment successful!');
@@ -348,12 +349,12 @@ export function ContentViewer({
     });
     return (
       <div className={`content-viewer-placeholder ${className}`}>
-        <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <div className="text-4xl mb-4">🔒</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="text-center p-8 bg-[var(--surface-elevated)] rounded-lg border-2 border-dashed border-[var(--border)]">
+          <Lock className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
             Payment Required
           </h3>
-          <p className="text-gray-600">
+          <p className="text-[var(--text-secondary)]">
             Complete payment to access this content
           </p>
         </div>
@@ -364,12 +365,12 @@ export function ContentViewer({
   if (isLoading) {
     return (
       <div className={`content-viewer-loading ${className}`}>
-        <div className="text-center p-8 bg-blue-50 rounded-lg">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
+        <div className="text-center p-8 bg-[var(--info-light)] rounded-lg">
+          <div className="w-12 h-12 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
             Loading Content
           </h3>
-          <p className="text-blue-700">
+          <p className="text-[var(--text-secondary)]">
             Accessing your purchased content...
           </p>
         </div>
@@ -380,16 +381,17 @@ export function ContentViewer({
   if (error) {
     return (
       <div className={`content-viewer-error ${className}`}>
-        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
-          <div className="text-4xl mb-4">❌</div>
-          <h3 className="text-lg font-semibold text-red-900 mb-2">
+        <div className="text-center p-8 status-error rounded-lg">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">
             Access Failed
           </h3>
-          <p className="text-red-700 mb-4">{error}</p>
+          <p className="mb-4">{error}</p>
           <button
             onClick={handleRetry}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className="btn-primary"
           >
+            <RefreshCw className="w-4 h-4" />
             Try Again
           </button>
         </div>
@@ -400,12 +402,12 @@ export function ContentViewer({
   if (!accessResult?.contentUrl) {
     return (
       <div className={`content-viewer-empty ${className}`}>
-        <div className="text-center p-8 bg-gray-50 rounded-lg">
-          <div className="text-4xl mb-4">📭</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="text-center p-8 bg-[var(--surface-elevated)] rounded-lg">
+          <FileText className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
             No Content Available
           </h3>
-          <p className="text-gray-600">
+          <p className="text-[var(--text-secondary)]">
             Unable to load content at this time
           </p>
         </div>
@@ -422,49 +424,50 @@ export function ContentViewer({
   return (
     <div className={`content-viewer ${className}`}>
       {/* Content Header */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+      <div className="card p-4 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{getContentIcon(contentInfo.mimeType)}</span>
+            <FileText className="w-6 h-6 text-[var(--brand-teal)]" />
             <div>
-              <h3 className="font-semibold text-gray-900">{contentInfo.name}</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-[var(--text-primary)]">{contentInfo.name}</h3>
+              <p className="text-sm text-[var(--text-secondary)]">
                 {accessResult.contentType || contentInfo.mimeType} • {formatFileSize(accessResult.contentSize || contentInfo.size)}
               </p>
             </div>
           </div>
-          
+
           <button
             onClick={handleDownload}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="btn-primary"
           >
-            <span>📥</span>
+            <Download className="w-4 h-4" />
             Download
           </button>
         </div>
       </div>
 
       {/* Content Display */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="card overflow-hidden">
         {canDisplayInline(contentInfo.mimeType) ? (
-          <ContentDisplay 
+          <ContentDisplay
             contentUrl={accessResult.contentUrl}
             mimeType={accessResult.contentType || contentInfo.mimeType}
             name={contentInfo.name}
           />
         ) : (
           <div className="text-center p-8">
-            <div className="text-4xl mb-4">{getContentIcon(contentInfo.mimeType)}</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <FileText className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
               {contentInfo.name}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-[var(--text-secondary)] mb-4">
               This file type cannot be previewed. Click download to access the content.
             </p>
             <button
               onClick={handleDownload}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="btn-primary"
             >
+              <Download className="w-4 h-4" />
               Download File
             </button>
           </div>
@@ -514,7 +517,7 @@ function ContentDisplay({ contentUrl, mimeType, name }: ContentDisplayProps) {
         <iframe
           src={contentUrl}
           title={name}
-          className="w-full h-96 border border-gray-200 rounded"
+          className="w-full h-96 border border-[var(--border)] rounded"
         />
       </div>
     );
@@ -537,7 +540,6 @@ function ContentDisplay({ contentUrl, mimeType, name }: ContentDisplayProps) {
   if (mimeType.startsWith('audio/')) {
     return (
       <div className="p-8 text-center">
-        <div className="text-4xl mb-4">🎵</div>
         <audio
           src={contentUrl}
           controls
@@ -552,8 +554,8 @@ function ContentDisplay({ contentUrl, mimeType, name }: ContentDisplayProps) {
   // Fallback for unsupported types
   return (
     <div className="text-center p-8">
-      <div className="text-4xl mb-4">📁</div>
-      <p className="text-gray-600">
+      <FileText className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+      <p className="text-[var(--text-secondary)]">
         Preview not available for this file type.
       </p>
     </div>
@@ -573,24 +575,25 @@ export function ContentViewerCompact({
 }: ContentViewerCompactProps) {
   if (!showPreview) {
     return (
-      <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+      <div className="flex items-center justify-between p-4 card">
         <div className="flex items-center gap-3">
-          <span className="text-xl">{getContentIcon(props.contentInfo.mimeType)}</span>
+          <FileText className="w-5 h-5 text-[var(--brand-teal)]" />
           <div>
-            <p className="font-medium text-gray-900">{props.contentInfo.name}</p>
-            <p className="text-sm text-gray-600">
+            <p className="font-medium text-[var(--text-primary)]">{props.contentInfo.name}</p>
+            <p className="text-sm text-[var(--text-secondary)]">
               {props.contentInfo.mimeType}
             </p>
           </div>
         </div>
-        
+
         {props.paymentProof && (
           <button
             onClick={() => {
               // Handle download logic here - would need access to ContentViewer's download function
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+            className="btn-primary btn-sm"
           >
+            <Download className="w-4 h-4" />
             Download
           </button>
         )}

@@ -8,6 +8,7 @@ import CIDManager from '@/components/ui/CIDManager'
 import { NetworkBadge } from '@/components/ui/NetworkIndicator'
 import { PaymentInstruction, AttachedCID, Document, PaymentInstructionResponse, AttachedCIDsResponse, DocumentListResponse } from '@/lib/types'
 import { formatUsdAmount, convertUsdcToUsd, formatUsdcWithEquivalent } from '@/lib/pricing'
+import { CreditCard, Paperclip, Pencil, Trash2, AlertCircle, ChevronLeft, Loader2 } from 'lucide-react'
 
 export default function PaymentInstructionDetailPage() {
   const router = useRouter()
@@ -57,7 +58,7 @@ export default function PaymentInstructionDetailPage() {
         if (docsResult.success && docsResult.data) {
           // Filter out documents that are already attached - use the actual data, not state
           const attachedCIDSet = new Set(attachedCIDsData.map(ac => ac.cid))
-          const available = docsResult.data.documents.filter(doc => 
+          const available = docsResult.data.documents.filter(doc =>
             !attachedCIDSet.has(doc.cid) && !doc.isMonetized
           )
           setAvailableCIDs(available)
@@ -165,7 +166,7 @@ export default function PaymentInstructionDetailPage() {
   const formatPrice = () => {
     const requirement = getPaymentRequirement()
     if (!requirement) return 'No price set'
-    
+
     try {
       const usdAmount = convertUsdcToUsd(requirement.max_amount_required)
       return `${formatUsdAmount(usdAmount)} (${formatUsdcWithEquivalent(requirement.max_amount_required)})`
@@ -176,12 +177,12 @@ export default function PaymentInstructionDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-[var(--background)]">
         <Navigation />
         <div className="content-max-width section-padding py-16">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600 text-lg">Loading payment instruction...</span>
+            <div className="w-10 h-10 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin"></div>
+            <span className="ml-4 text-[var(--text-secondary)] text-lg">Loading payment instruction...</span>
           </div>
         </div>
       </div>
@@ -190,19 +191,22 @@ export default function PaymentInstructionDetailPage() {
 
   if (error || !paymentInstruction) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-[var(--background)]">
         <Navigation />
         <div className="content-max-width section-padding py-16">
           <div className="text-center">
-            <span className="text-6xl mb-6 block">❌</span>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="w-20 h-20 bg-[var(--error-light)] rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-10 h-10 text-[var(--error)]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
               {error || 'Payment Instruction Not Found'}
             </h2>
-            <p className="text-gray-600 mb-8">
-              The payment instruction you're looking for doesn't exist or couldn't be loaded.
+            <p className="text-[var(--text-secondary)] mb-8">
+              The payment instruction you&apos;re looking for doesn&apos;t exist or couldn&apos;t be loaded.
             </p>
             <Link href="/admin/payment-instructions" className="btn-primary">
-              ← Back to Payment Instructions
+              <ChevronLeft className="w-4 h-4" />
+              Back to Payment Instructions
             </Link>
           </div>
         </div>
@@ -211,46 +215,58 @@ export default function PaymentInstructionDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+      <div className="bg-[var(--surface)] border-b border-[var(--border)]">
         <div className="content-max-width section-padding">
           <div className="py-8">
             <div className="flex items-start justify-between">
               <div className="animate-fade-in">
                 <div className="flex items-center space-x-3 mb-4">
-                  <Link 
+                  <Link
                     href="/admin/payment-instructions"
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex items-center"
                   >
-                    ← Payment Instructions
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Payment Instructions
                   </Link>
-                  <span className="text-gray-300">/</span>
+                  <span className="text-[var(--border)]">/</span>
                   <NetworkBadge />
                 </div>
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
+                <h1 className="text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-2">
                   {paymentInstruction.name}
                 </h1>
-                <p className="text-lg text-gray-600">
+                <p className="text-lg text-[var(--text-secondary)]">
                   {paymentInstruction.description}
                 </p>
               </div>
-              
+
               <div className="flex gap-3">
                 <Link
                   href={`/admin/payment-instructions/${id}/edit`}
                   className="btn-primary"
                 >
-                  ✏️ Edit
+                  <Pencil className="w-4 h-4" />
+                  Edit
                 </Link>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className="btn-danger"
                 >
-                  {isDeleting ? '🔄 Deleting...' : '🗑️ Delete'}
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -263,61 +279,59 @@ export default function PaymentInstructionDetailPage() {
         {error && (
           <div className="mb-8 p-6 status-error rounded-2xl border animate-slide-up">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-red-500 mr-3 icon-clean" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <p className="text-red-800 font-semibold">{error}</p>
+              <AlertCircle className="w-6 h-6 mr-3" />
+              <p className="font-semibold">{error}</p>
             </div>
           </div>
         )}
 
         {/* Payment Instruction Details */}
-        <div className="card p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-            <span className="text-2xl mr-3">💳</span>
+        <div className="card p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-6 flex items-center">
+            <CreditCard className="w-6 h-6 mr-3 text-[var(--brand-teal)]" />
             Payment Details
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Name</label>
-                <p className="text-lg font-semibold text-gray-900">{paymentInstruction.name}</p>
+                <label className="text-sm font-medium text-[var(--text-muted)]">Name</label>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">{paymentInstruction.name}</p>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-500">Description</label>
-                <p className="text-gray-700">{paymentInstruction.description}</p>
+                <label className="text-sm font-medium text-[var(--text-muted)]">Description</label>
+                <p className="text-[var(--text-secondary)]">{paymentInstruction.description}</p>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-500">Price</label>
-                <p className="text-lg font-semibold text-gray-900">{formatPrice()}</p>
+                <label className="text-sm font-medium text-[var(--text-muted)]">Price</label>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">{formatPrice()}</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Wallet Address</label>
-                <p className="text-sm font-mono text-gray-700 break-all">
+                <label className="text-sm font-medium text-[var(--text-muted)]">Wallet Address</label>
+                <p className="text-sm font-mono text-[var(--text-secondary)] break-all">
                   {getPaymentRequirement()?.pay_to || 'No wallet set'}
                 </p>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-500">Network</label>
-                <p className="text-gray-700">Base Sepolia (Testnet)</p>
+                <label className="text-sm font-medium text-[var(--text-muted)]">Network</label>
+                <p className="text-[var(--text-secondary)]">Base Sepolia (Testnet)</p>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-500">Created</label>
-                <p className="text-gray-700">{formatDate(paymentInstruction.createdAt)}</p>
+                <label className="text-sm font-medium text-[var(--text-muted)]">Created</label>
+                <p className="text-[var(--text-secondary)]">{formatDate(paymentInstruction.createdAt)}</p>
               </div>
-              
+
               {paymentInstruction.updatedAt && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                  <p className="text-gray-700">{formatDate(paymentInstruction.updatedAt)}</p>
+                  <label className="text-sm font-medium text-[var(--text-muted)]">Last Updated</label>
+                  <p className="text-[var(--text-secondary)]">{formatDate(paymentInstruction.updatedAt)}</p>
                 </div>
               )}
             </div>
@@ -325,12 +339,12 @@ export default function PaymentInstructionDetailPage() {
         </div>
 
         {/* CID Management */}
-        <div className="card p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-            <span className="text-2xl mr-3">📎</span>
+        <div className="card p-6">
+          <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-6 flex items-center">
+            <Paperclip className="w-6 h-6 mr-3 text-[var(--brand-teal)]" />
             Document Management
           </h2>
-          
+
           <CIDManager
             paymentInstructionId={id}
             attachedCIDs={attachedCIDs}

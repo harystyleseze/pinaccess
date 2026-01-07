@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { Check, Copy, AlertCircle, Upload } from 'lucide-react';
 import Navigation from '@/components/layout/Navigation';
 import FileUpload from '@/components/ui/FileUpload';
 import { validateEthereumAddressDetailed, validateSafeString } from '@/lib/validation';
@@ -54,7 +55,7 @@ export default function UploadPage() {
       file,
       name: prev.name || file.name.replace(/\.[^/.]+$/, '') // Remove extension for default name
     }));
-    
+
     // Clear file-related errors
     setFormErrors(prev => {
       const { file: _, ...rest } = prev;
@@ -66,7 +67,7 @@ export default function UploadPage() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, name: value }));
-    
+
     // Clear name errors on change
     if (formErrors.name) {
       setFormErrors(prev => {
@@ -79,7 +80,7 @@ export default function UploadPage() {
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value) || 0;
     setFormData(prev => ({ ...prev, price: value }));
-    
+
     // Clear price errors on change
     if (formErrors.price) {
       setFormErrors(prev => {
@@ -92,7 +93,7 @@ export default function UploadPage() {
   const handleWalletChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, walletAddress: value }));
-    
+
     // Clear wallet errors on change
     if (formErrors.walletAddress) {
       setFormErrors(prev => {
@@ -105,7 +106,7 @@ export default function UploadPage() {
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, description: value }));
-    
+
     // Clear description errors on change
     if (formErrors.description) {
       setFormErrors(prev => {
@@ -183,7 +184,7 @@ export default function UploadPage() {
     try {
       // Step 1: Upload file
       setUploadState(prev => ({ ...prev, uploadProgress: 10 }));
-      
+
       const uploadFormData = new FormData();
       uploadFormData.append('file', formData.file!);
       uploadFormData.append('creator', formData.name);
@@ -195,7 +196,7 @@ export default function UploadPage() {
       });
 
       const uploadResult = await uploadResponse.json();
-      
+
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Upload failed');
       }
@@ -229,7 +230,7 @@ export default function UploadPage() {
       });
 
       const paymentResult = await paymentResponse.json();
-      
+
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || 'Payment instruction creation failed');
       }
@@ -249,7 +250,7 @@ export default function UploadPage() {
       });
 
       const attachResult = await attachResponse.json();
-      
+
       if (!attachResult.success) {
         throw new Error(attachResult.error || 'Document monetization failed');
       }
@@ -301,14 +302,14 @@ export default function UploadPage() {
   const maxFileSize = 50 * 1024 * 1024; // 50MB
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       <div className="max-w-4xl mx-auto section-padding py-8">
         {/* Header */}
         <div className="mb-12 text-center animate-fade-in">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Upload Document</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <h1 className="text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-4">Upload Document</h1>
+          <p className="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed">
             Upload your document, set a price, and create a monetized link for buyers.
           </p>
         </div>
@@ -317,12 +318,10 @@ export default function UploadPage() {
         {uploadState.success && uploadState.gatewayUrl && (
           <div className="mb-12 p-8 status-success rounded-2xl border animate-slide-up">
             <div className="flex items-center mb-6">
-              <svg className="w-8 h-8 text-green-500 mr-3 icon-clean" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <h3 className="text-2xl font-bold text-green-800">🎉 Document Published Successfully!</h3>
+              <Check className="w-8 h-8 mr-3" />
+              <h3 className="text-2xl font-bold">Document Published Successfully!</h3>
             </div>
-            <p className="text-green-700 mb-6 text-lg">
+            <p className="opacity-90 mb-6 text-lg">
               Your document has been uploaded and monetized. Share this link with buyers:
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -330,20 +329,22 @@ export default function UploadPage() {
                 type="text"
                 value={uploadState.gatewayUrl}
                 readOnly
-                className="flex-1 px-4 py-3 border border-green-300 rounded-xl bg-white text-sm font-mono"
+                className="flex-1 px-4 py-3 border border-[var(--success)]/30 rounded-xl bg-[var(--surface)] text-sm font-mono text-[var(--text-primary)]"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(uploadState.gatewayUrl!)}
                 className="btn-success px-6 py-3"
               >
-                📋 Copy Link
+                <Copy className="w-4 h-4" />
+                Copy Link
               </button>
             </div>
             <button
               onClick={handleReset}
               className="mt-6 btn-secondary px-6 py-3"
             >
-              📤 Upload Another Document
+              <Upload className="w-4 h-4" />
+              Upload Another Document
             </button>
           </div>
         )}
@@ -352,21 +353,19 @@ export default function UploadPage() {
         {uploadState.error && (
           <div className="mb-12 p-8 status-error rounded-2xl border animate-slide-up">
             <div className="flex items-center">
-              <svg className="w-8 h-8 text-red-500 mr-3 icon-clean" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <p className="text-red-800 font-semibold text-lg">⚠️ {uploadState.error}</p>
+              <AlertCircle className="w-8 h-8 mr-3" />
+              <p className="font-semibold text-lg">{uploadState.error}</p>
             </div>
           </div>
         )}
 
         {/* Upload Form */}
         {!uploadState.success && (
-          <div className="card-gradient p-8 animate-slide-up">
+          <div className="card p-8 animate-slide-up">
             <form onSubmit={(e) => { e.preventDefault(); handlePublish(); }} className="space-y-8">
               {/* File Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   Document File
                 </label>
                 <FileUpload
@@ -376,14 +375,14 @@ export default function UploadPage() {
                   isUploading={uploadState.isUploading}
                 />
                 {formErrors.file && (
-                  <p className="mt-2 text-sm text-red-600">{formErrors.file}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]">{formErrors.file}</p>
                 )}
               </div>
 
               {/* Document Name */}
               <div className="animate-slide-up">
-                <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-3">
-                  📝 Document Name
+                <label htmlFor="name" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Document Name
                 </label>
                 <input
                   type="text"
@@ -391,22 +390,24 @@ export default function UploadPage() {
                   value={formData.name}
                   onChange={handleNameChange}
                   disabled={uploadState.isUploading}
-                  className={`form-input focus-ring ${formErrors.name ? 'form-input-error error-shake' : ''} ${uploadState.isUploading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 border rounded-xl bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200 ${
+                    formErrors.name ? 'border-[var(--error)] bg-[var(--error-light)]' : 'border-[var(--border)]'
+                  } ${uploadState.isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="Enter a descriptive name for your document"
                 />
                 {formErrors.name && (
-                  <p className="mt-2 text-sm text-red-600 font-medium animate-slide-down">⚠️ {formErrors.name}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]">{formErrors.name}</p>
                 )}
               </div>
 
               {/* Price */}
               <div className="animate-slide-up">
-                <label htmlFor="price" className="block text-sm font-semibold text-gray-700 mb-3">
-                  💰 Price (USD)
+                <label htmlFor="price" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Price (USD)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-gray-500 text-lg">$</span>
+                    <span className="text-[var(--text-muted)] text-lg">$</span>
                   </div>
                   <input
                     type="number"
@@ -417,24 +418,26 @@ export default function UploadPage() {
                     value={formData.price || ''}
                     onChange={handlePriceChange}
                     disabled={uploadState.isUploading}
-                    className={`form-input focus-ring pl-10 ${formErrors.price ? 'form-input-error error-shake' : ''} ${uploadState.isUploading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200 ${
+                      formErrors.price ? 'border-[var(--error)] bg-[var(--error-light)]' : 'border-[var(--border)]'
+                    } ${uploadState.isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="0.00"
                   />
                 </div>
                 {formData.price > 0 && (
-                  <p className="mt-2 text-sm text-gray-500 animate-fade-in">
-                    💳 Buyers will pay {formatUsdAmount(formData.price)} in USDC tokens
+                  <p className="mt-2 text-sm text-[var(--text-secondary)] animate-fade-in">
+                    Buyers will pay {formatUsdAmount(formData.price)} in USDC tokens
                   </p>
                 )}
                 {formErrors.price && (
-                  <p className="mt-2 text-sm text-red-600 font-medium animate-slide-down">⚠️ {formErrors.price}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]">{formErrors.price}</p>
                 )}
               </div>
 
               {/* Wallet Address */}
               <div className="animate-slide-up">
-                <label htmlFor="wallet" className="block text-sm font-semibold text-gray-700 mb-3">
-                  🔗 Your Wallet Address
+                <label htmlFor="wallet" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Your Wallet Address
                 </label>
                 <input
                   type="text"
@@ -442,21 +445,23 @@ export default function UploadPage() {
                   value={formData.walletAddress}
                   onChange={handleWalletChange}
                   disabled={uploadState.isUploading}
-                  className={`form-input focus-ring font-mono ${formErrors.walletAddress ? 'form-input-error error-shake' : ''} ${uploadState.isUploading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 border rounded-xl bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] font-mono focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200 ${
+                    formErrors.walletAddress ? 'border-[var(--error)] bg-[var(--error-light)]' : 'border-[var(--border)]'
+                  } ${uploadState.isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="0x..."
                 />
-                <p className="mt-2 text-sm text-gray-500">
-                  🌐 USDC token payments will be sent to this address on Base Sepolia network
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
+                  USDC token payments will be sent to this address on Base Sepolia network
                 </p>
                 {formErrors.walletAddress && (
-                  <p className="mt-2 text-sm text-red-600 font-medium animate-slide-down">⚠️ {formErrors.walletAddress}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]">{formErrors.walletAddress}</p>
                 )}
               </div>
 
               {/* Description (Optional) */}
               <div className="animate-slide-up">
-                <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-3">
-                  📄 Description (Optional)
+                <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Description (Optional)
                 </label>
                 <textarea
                   id="description"
@@ -464,11 +469,13 @@ export default function UploadPage() {
                   value={formData.description}
                   onChange={handleDescriptionChange}
                   disabled={uploadState.isUploading}
-                  className={`form-input focus-ring resize-none ${formErrors.description ? 'form-input-error error-shake' : ''} ${uploadState.isUploading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 border rounded-xl bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200 ${
+                    formErrors.description ? 'border-[var(--error)] bg-[var(--error-light)]' : 'border-[var(--border)]'
+                  } ${uploadState.isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="Optional description for your document"
                 />
                 {formErrors.description && (
-                  <p className="mt-2 text-sm text-red-600 font-medium animate-slide-down">⚠️ {formErrors.description}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]">{formErrors.description}</p>
                 )}
               </div>
 
@@ -476,22 +483,22 @@ export default function UploadPage() {
               {uploadState.isUploading && (
                 <div className="space-y-4 animate-slide-up">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 font-medium flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                      {uploadState.currentStep === 'uploading' && '📤 Uploading document...'}
-                      {uploadState.currentStep === 'creating-payment' && '💳 Creating payment instruction...'}
-                      {uploadState.currentStep === 'monetizing' && '🔗 Setting up monetization...'}
+                    <span className="text-[var(--text-secondary)] font-medium flex items-center">
+                      <div className="w-4 h-4 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {uploadState.currentStep === 'uploading' && 'Uploading document...'}
+                      {uploadState.currentStep === 'creating-payment' && 'Creating payment instruction...'}
+                      {uploadState.currentStep === 'monetizing' && 'Setting up monetization...'}
                     </span>
-                    <span className="text-gray-600 font-semibold">{uploadState.uploadProgress}%</span>
+                    <span className="text-[var(--text-secondary)] font-semibold">{uploadState.uploadProgress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-primary to-accent h-3 rounded-full transition-all duration-500 ease-out animate-pulse-gentle"
+                  <div className="w-full bg-[var(--surface-elevated)] rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-[var(--brand-teal)] to-[var(--brand-cyan)] h-3 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${uploadState.uploadProgress}%` }}
                     />
                   </div>
-                  <p className="text-sm text-gray-500 text-center">
-                    ⏳ Please wait while we process your document...
+                  <p className="text-sm text-[var(--text-muted)] text-center">
+                    Please wait while we process your document...
                   </p>
                 </div>
               )}
@@ -503,17 +510,20 @@ export default function UploadPage() {
                   disabled={!isFormValid() || uploadState.isUploading}
                   className={`${
                     isFormValid() && !uploadState.isUploading
-                      ? 'btn-primary hover:scale-105 transform transition-all duration-200'
-                      : 'btn-pill bg-gray-300 text-gray-500 cursor-not-allowed'
-                  } px-8 py-4 text-lg font-semibold shadow-lg`}
+                      ? 'btn-primary'
+                      : 'bg-[var(--surface-elevated)] text-[var(--text-muted)] cursor-not-allowed rounded-full'
+                  } px-8 py-4 text-lg font-semibold`}
                 >
                   {uploadState.isUploading ? (
                     <>
-                      <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      ⏳ Publishing...
+                      <div className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-3"></div>
+                      Publishing...
                     </>
                   ) : (
-                    '🚀 Publish Document'
+                    <>
+                      <Upload className="w-5 h-5" />
+                      Publish Document
+                    </>
                   )}
                 </button>
               </div>

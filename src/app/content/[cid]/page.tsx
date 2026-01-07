@@ -7,7 +7,7 @@ import { WalletConnector } from '@/components/ui/WalletConnector';
 import { PaymentButton } from '@/components/ui/PaymentButton';
 import { ContentViewer } from '@/components/ui/ContentViewer';
 import { useWalletConnection } from '@/lib/wallet-context';
-import { 
+import {
   validatePaymentProof,
   getContentIcon,
   formatFileSize,
@@ -15,6 +15,7 @@ import {
 } from '@/lib/content-access';
 import { BASE_SEPOLIA_USDC_ADDRESS } from '@/lib/wallet-config';
 import { formatUsdAmount, formatUsdcWithEquivalent } from '@/lib/pricing';
+import { AlertCircle, RefreshCw, Lock, CheckCircle, FileText, ChevronLeft, Info } from 'lucide-react';
 
 interface ContentPageState {
   loading: boolean;
@@ -30,7 +31,7 @@ export default function ContentAccessPage() {
   const params = useParams();
   const cid = params.cid as string;
   const { isConnected, address } = useWalletConnection();
-  
+
   const [state, setState] = useState<ContentPageState>({
     loading: true,
     error: null,
@@ -72,7 +73,7 @@ export default function ContentAccessPage() {
       if (isConnected && address) {
         const { tryAccessWithStoredPayment } = await import('@/lib/content-access');
         const storedAccessResult = await tryAccessWithStoredPayment(cid, address, contentInfo);
-        
+
         if (storedAccessResult && storedAccessResult.success) {
           console.log('User has already paid for this content, granting access');
           setState(prev => ({
@@ -123,12 +124,12 @@ export default function ContentAccessPage() {
         method: 'GET',
         // Don't include credentials to get the 402 response
       });
-      
+
       if (response.status === 402) {
         // Payment required - get the actual x402 payment info from Pinata
         const paymentInfo = await response.json();
         console.log('x402 Payment Info received:', paymentInfo);
-        
+
         // Validate the x402 response structure
         if (!paymentInfo.accepts || !Array.isArray(paymentInfo.accepts) || paymentInfo.accepts.length === 0) {
           throw new Error('Invalid x402 payment response: missing accepts array');
@@ -138,7 +139,7 @@ export default function ContentAccessPage() {
         if (!paymentOption.maxAmountRequired || !paymentOption.payTo || !paymentOption.resource) {
           throw new Error('Invalid x402 payment response: missing required payment fields');
         }
-        
+
         setState(prev => ({
           ...prev,
           paymentRequired: true,
@@ -160,10 +161,10 @@ export default function ContentAccessPage() {
       }
     } catch (error) {
       console.error('Content access error:', error);
-      
+
       // Provide more specific error messages based on the error type
       let errorMessage = 'Failed to check content access.';
-      
+
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         errorMessage = 'Network error: Unable to connect to content gateway. Please check your internet connection.';
       } else if (error instanceof Error) {
@@ -175,7 +176,7 @@ export default function ContentAccessPage() {
           errorMessage = 'Access forbidden. You may not have permission to access this content.';
         }
       }
-      
+
       setState(prev => ({
         ...prev,
         error: errorMessage,
@@ -196,20 +197,20 @@ export default function ContentAccessPage() {
 
       // Use the gateway URL from the x402 response for validation
       const gatewayUrl = state.paymentInfo?.accepts?.[0]?.resource;
-      
+
       console.log('Content page: Validating payment proof...', {
         gatewayUrl,
         hasPaymentInfo: !!state.paymentInfo
       });
-      
+
       // Validate payment proof
       const validation = await validatePaymentProof(cid, paymentProof, gatewayUrl);
-      
+
       console.log('Content page: Payment proof validation result:', validation);
-      
+
       if (validation.isValid) {
         console.log('Content page: Payment proof valid, granting access...');
-        
+
         setState(prev => {
           const newState = {
             ...prev,
@@ -285,18 +286,18 @@ export default function ContentAccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       <div className="content-max-width section-padding py-12">
         {/* Loading State */}
         {state.loading && (
           <div className="max-w-4xl mx-auto">
-            <div className="card p-8 animate-pulse">
-              <div className="loading-shimmer w-16 h-16 rounded-lg mb-6"></div>
-              <div className="loading-shimmer w-3/4 h-8 rounded mb-4"></div>
-              <div className="loading-shimmer w-1/2 h-6 rounded mb-6"></div>
-              <div className="loading-shimmer w-full h-64 rounded"></div>
+            <div className="card p-8">
+              <div className="w-16 h-16 rounded-lg bg-[var(--surface-elevated)] animate-pulse mb-6"></div>
+              <div className="w-3/4 h-8 rounded bg-[var(--surface-elevated)] animate-pulse mb-4"></div>
+              <div className="w-1/2 h-6 rounded bg-[var(--surface-elevated)] animate-pulse mb-6"></div>
+              <div className="w-full h-64 rounded bg-[var(--surface-elevated)] animate-pulse"></div>
             </div>
           </div>
         )}
@@ -305,20 +306,22 @@ export default function ContentAccessPage() {
         {state.error && (
           <div className="max-w-2xl mx-auto text-center">
             <div className="status-error rounded-2xl p-8">
-              <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <h3 className="text-lg font-semibold text-red-800 mb-2">Content Access Failed</h3>
-              <p className="text-red-700 mb-4">{state.error}</p>
-              <button
-                onClick={retryContentAccess}
-                className="btn-error px-6 py-2 mr-4"
-              >
-                🔄 Try Again
-              </button>
-              <a href="/browse" className="btn-secondary px-6 py-2">
-                ← Browse Content
-              </a>
+              <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Content Access Failed</h3>
+              <p className="mb-4">{state.error}</p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={retryContentAccess}
+                  className="btn-primary"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </button>
+                <a href="/browse" className="btn-secondary">
+                  <ChevronLeft className="w-4 h-4" />
+                  Browse Content
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -329,49 +332,45 @@ export default function ContentAccessPage() {
             <div className="card p-8">
               {/* Content Header */}
               <div className="flex items-start mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl mr-6">
-                  {getContentIcon(state.contentInfo.mimeType)}
-                </div>
+                <FileText className="w-10 h-10 text-[var(--brand-teal)] mr-6 flex-shrink-0" />
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
                     {state.contentInfo.name}
                   </h1>
-                  <div className="flex items-center text-gray-600 mb-4">
+                  <div className="flex items-center text-[var(--text-secondary)] mb-4">
                     <span>By {state.contentInfo.creator}</span>
                     <span className="mx-2">•</span>
                     <span>{formatFileSize(state.contentInfo.size)}</span>
                   </div>
                   {state.contentInfo.description && (
-                    <p className="text-gray-700">{state.contentInfo.description}</p>
+                    <p className="text-[var(--text-secondary)]">{state.contentInfo.description}</p>
                   )}
                 </div>
               </div>
 
               {/* Payment Required Section */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-8">
+              <div className="bg-[var(--warning-light)] border border-[var(--warning)]/20 rounded-xl p-6 mb-8">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xl mr-4">
-                    💳
-                  </div>
+                  <Lock className="w-8 h-8 text-[var(--warning)] mr-4 flex-shrink-0" />
                   <div>
-                    <h3 className="text-xl font-semibold text-yellow-800">Payment Required</h3>
-                    <p className="text-yellow-700">This content requires payment to access</p>
+                    <h3 className="text-xl font-semibold text-[var(--warning)]">Payment Required</h3>
+                    <p className="text-[var(--text-secondary)]">This content requires payment to access</p>
                   </div>
                 </div>
 
                 {state.paymentInfo && state.paymentInfo.accepts && state.paymentInfo.accepts[0] && (
-                  <div className="bg-white rounded-lg p-4 mb-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">Payment Details (x402 Protocol):</h4>
-                    <div className="text-sm text-gray-700 space-y-1">
+                  <div className="bg-[var(--surface)] rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-[var(--text-primary)] mb-2">Payment Details (x402 Protocol):</h4>
+                    <div className="text-sm text-[var(--text-secondary)] space-y-1">
                       <p><strong>Price:</strong> {formatUsdAmount(state.contentInfo.price?.usd || 0)}</p>
                       <p><strong>Amount Required:</strong> {formatUsdcWithEquivalent(state.paymentInfo.accepts[0].maxAmountRequired)}</p>
                       <p><strong>Network:</strong> {state.paymentInfo.accepts[0].network}</p>
                       <p><strong>Pay To:</strong> {state.paymentInfo.accepts[0].payTo}</p>
                       <p><strong>Token Contract:</strong> {state.paymentInfo.accepts[0].asset}</p>
                     </div>
-                    
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-xs text-blue-800">
+
+                    <div className="mt-3 p-3 bg-[var(--info-light)] rounded-lg">
+                      <p className="text-xs text-[var(--info)]">
                         <strong>Gateway URL:</strong> {state.paymentInfo.accepts[0].resource}
                       </p>
                     </div>
@@ -380,15 +379,15 @@ export default function ContentAccessPage() {
 
                 {/* Wallet Connection Section */}
                 <div className="mb-6">
-                  <h4 className="font-semibold text-yellow-800 mb-3">Connect Your Wallet to Pay</h4>
-                  <WalletConnector 
+                  <h4 className="font-semibold text-[var(--warning)] mb-3">Connect Your Wallet to Pay</h4>
+                  <WalletConnector
                     className="max-w-md"
                     onWalletConnect={(address, chainId) => {
                       console.log('Wallet connected:', address, chainId);
                     }}
                   />
                   {!isConnected && (
-                    <p className="text-sm text-yellow-700 mt-2">
+                    <p className="text-sm text-[var(--text-secondary)] mt-2">
                       Connect your wallet to make payments using USDC tokens on Base Sepolia testnet.
                     </p>
                   )}
@@ -411,32 +410,30 @@ export default function ContentAccessPage() {
                       onPaymentError={handlePaymentError}
                       disabled={!isConnected}
                     />
-                    <a href="/browse" className="btn-secondary px-6 py-3">
-                      ← Browse Other Content
+                    <a href="/browse" className="btn-secondary">
+                      <ChevronLeft className="w-4 h-4" />
+                      Browse Other Content
                     </a>
                   </div>
                 )}
               </div>
 
               {/* x402 Protocol Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                <h4 className="font-semibold text-blue-900 mb-2">🔒 x402 Payment Protocol</h4>
-                <p className="text-blue-800 text-sm mb-3">
-                  This content uses the x402 payment protocol for secure, decentralized payments. 
+              <div className="bg-[var(--info-light)] border border-[var(--info)]/20 rounded-xl p-6">
+                <h4 className="font-semibold text-[var(--info)] mb-2 flex items-center">
+                  <Lock className="w-5 h-5 mr-2" />
+                  x402 Payment Protocol
+                </h4>
+                <p className="text-[var(--text-secondary)] text-sm mb-3">
+                  This content uses the x402 payment protocol for secure, decentralized payments.
                   Your payment is processed directly on the blockchain without intermediaries.
                 </p>
-                
-                <div className="text-xs text-blue-700 space-y-1">
+
+                <div className="text-xs text-[var(--text-muted)] space-y-1">
                   <p><strong>How it works:</strong></p>
                   <p>1. Request content → Get payment requirements (402 response)</p>
                   <p>2. Make USDC token payment → Receive payment proof</p>
                   <p>3. Access content → Using payment proof header</p>
-                </div>
-                
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <p className="text-xs text-blue-600">
-                    <strong>For Developers:</strong> Use x402-fetch or x402-axios libraries for automatic payment handling.
-                  </p>
                 </div>
               </div>
             </div>
@@ -457,20 +454,18 @@ export default function ContentAccessPage() {
             <div className="card p-8">
               {/* Content Header */}
               <div className="flex items-start mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-2xl mr-6">
-                  {getContentIcon(state.contentInfo.mimeType)}
-                </div>
+                <FileText className="w-10 h-10 text-[var(--success)] mr-6 flex-shrink-0" />
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
                     {state.contentInfo.name}
                   </h1>
-                  <div className="flex items-center text-gray-600 mb-4">
+                  <div className="flex items-center text-[var(--text-secondary)] mb-4">
                     <span>By {state.contentInfo.creator}</span>
                     <span className="mx-2">•</span>
                     <span>{formatFileSize(state.contentInfo.size)}</span>
                   </div>
                   {state.contentInfo.description && (
-                    <p className="text-gray-700">{state.contentInfo.description}</p>
+                    <p className="text-[var(--text-secondary)]">{state.contentInfo.description}</p>
                   )}
                 </div>
               </div>
@@ -478,10 +473,8 @@ export default function ContentAccessPage() {
               {/* Success Message */}
               <div className="status-success rounded-xl p-4 mb-8">
                 <div className="flex items-center">
-                  <svg className="w-6 h-6 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-green-800 font-semibold">
+                  <CheckCircle className="w-6 h-6 mr-3" />
+                  <span className="font-semibold">
                     Access Granted! Enjoy your content.
                   </span>
                 </div>
@@ -511,8 +504,9 @@ export default function ContentAccessPage() {
 
               {/* Actions */}
               <div className="flex gap-4 justify-center">
-                <a href="/browse" className="btn-secondary px-6 py-3">
-                  ← Browse More Content
+                <a href="/browse" className="btn-secondary">
+                  <ChevronLeft className="w-4 h-4" />
+                  Browse More Content
                 </a>
               </div>
             </div>

@@ -216,43 +216,53 @@ function PaymentProgressModal({ execution, onClose }: PaymentProgressModalProps)
   const getStatusIcon = () => {
     switch (execution.status) {
       case 'connecting':
-        return '🔗';
       case 'confirming':
-        return '⏳';
       case 'processing':
-        return '⚡';
+        return (
+          <div className="w-10 h-10 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin" />
+        );
       case 'success':
-        return '✅';
+        return (
+          <div className="w-10 h-10 rounded-full bg-[var(--success)] flex items-center justify-center">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
       default:
-        return '⏳';
+        return (
+          <div className="w-10 h-10 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin" />
+        );
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[var(--surface)] rounded-2xl p-6 max-w-md w-full mx-4 border border-[var(--border)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Payment Progress</h3>
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">Payment Progress</h3>
           {execution.status === 'success' && (
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
-              ✕
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           )}
         </div>
 
         {/* Status */}
         <div className="text-center mb-6">
-          <div className="text-4xl mb-3">{getStatusIcon()}</div>
-          <p className="text-lg font-medium text-gray-900 mb-2">
+          <div className="flex justify-center mb-3">{getStatusIcon()}</div>
+          <p className="text-lg font-medium text-[var(--text-primary)] mb-2">
             {getStatusText()}
           </p>
-          
+
           {execution.estimatedTime && execution.status === 'processing' && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--text-secondary)]">
               Estimated time: {execution.estimatedTime} seconds
             </p>
           )}
@@ -261,13 +271,13 @@ function PaymentProgressModal({ execution, onClose }: PaymentProgressModalProps)
         {/* Progress Bar */}
         {execution.progress !== undefined && execution.status !== 'success' && (
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="flex justify-between text-sm text-[var(--text-secondary)] mb-2">
               <span>Progress</span>
               <span>{execution.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            <div className="w-full bg-[var(--surface-elevated)] rounded-full h-2">
+              <div
+                className="bg-[var(--brand-teal)] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${execution.progress}%` }}
               ></div>
             </div>
@@ -276,9 +286,9 @@ function PaymentProgressModal({ execution, onClose }: PaymentProgressModalProps)
 
         {/* Transaction Hash */}
         {execution.transactionHash && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Transaction Hash</p>
-            <p className="font-mono text-xs text-gray-900 break-all">
+          <div className="mb-4 p-3 bg-[var(--surface-elevated)] rounded-lg">
+            <p className="text-sm text-[var(--text-muted)] mb-1">Transaction Hash</p>
+            <p className="font-mono text-xs text-[var(--text-primary)] break-all">
               {execution.transactionHash}
             </p>
           </div>
@@ -289,28 +299,21 @@ function PaymentProgressModal({ execution, onClose }: PaymentProgressModalProps)
           <div className="space-y-3">
             <button
               onClick={onClose}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+              className="w-full btn-success py-2 px-4 rounded-full font-medium transition-colors"
             >
               Continue to Content
             </button>
-            
+
             {execution.transactionHash && (
               <a
                 href={`https://sepolia.basescan.org/tx/${execution.transactionHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center text-blue-600 hover:text-blue-700 text-sm"
+                className="block w-full text-center text-[var(--brand-teal)] hover:text-[var(--brand-cyan)] text-sm"
               >
-                View on Block Explorer ↗
+                View on Block Explorer
               </a>
             )}
-          </div>
-        )}
-
-        {/* Loading Animation for Processing States */}
-        {(execution.status === 'connecting' || execution.status === 'processing') && (
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         )}
       </div>
