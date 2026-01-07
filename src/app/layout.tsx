@@ -10,8 +10,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "PinAccess - Monetize Your Documents",
-  description: "Upload, price, and monetize your digital documents with IPFS and crypto payments",
+  title: "PinAccess - Monetize Your Contents",
+  description: "Upload, price, and monetize your digital documents with Pinata and x402 payment integration.",
 };
 
 export default function RootLayout({

@@ -112,7 +112,7 @@ export default function HowItWorksPage() {
               <ol className="text-gray-700 space-y-2 text-sm">
                 <li><strong>1. Request:</strong> Buyer requests content via gateway URL</li>
                 <li><strong>2. 402 Response:</strong> Gateway returns payment requirements</li>
-                <li><strong>3. Payment:</strong> Buyer sends USDC to creator's wallet</li>
+                <li><strong>3. Payment:</strong> Buyer sends USDC to creator&apos;s wallet</li>
                 <li><strong>4. Verification:</strong> x402 protocol verifies payment on-chain</li>
                 <li><strong>5. Access:</strong> Content is served with payment proof</li>
               </ol>
@@ -123,7 +123,7 @@ export default function HowItWorksPage() {
               <div className="text-gray-700 space-y-2 text-sm">
                 <p><strong>Network:</strong> Base Sepolia (Testnet)</p>
                 <p><strong>Token:</strong> USDC (0x036CbD53842c5426634e7929541eC2318f3dCF7e)</p>
-                <p><strong>Storage:</strong> IPFS via Pinata (Private Network)</p>
+                <p><strong>Storage:</strong> Pinata (Private Network)</p>
                 <p><strong>Protocol:</strong> x402 Payment Standard</p>
               </div>
               
