@@ -47,6 +47,7 @@ export default function UploadPage() {
     uploadProgress: 0,
     currentStep: 'uploading'
   });
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // File selection handler
   const handleFileSelect = useCallback((file: File) => {
@@ -275,6 +276,19 @@ export default function UploadPage() {
     }
   };
 
+  // Copy link handler with feedback
+  const handleCopyLink = async () => {
+    if (!uploadState.gatewayUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(uploadState.gatewayUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy URL:', error);
+    }
+  };
+
   // Reset form
   const handleReset = () => {
     setFormData({
@@ -332,11 +346,11 @@ export default function UploadPage() {
                 className="flex-1 px-4 py-3 border border-[var(--success)]/30 rounded-xl bg-[var(--surface)] text-sm font-mono text-[var(--text-primary)]"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(uploadState.gatewayUrl!)}
-                className="btn-success px-6 py-3"
+                onClick={handleCopyLink}
+                className={`${copySuccess ? 'btn-primary' : 'btn-success'} px-6 py-3 whitespace-nowrap`}
               >
-                <Copy className="w-4 h-4" />
-                Copy Link
+                {copySuccess ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copySuccess ? 'Copied!' : 'Copy Link'}
               </button>
             </div>
             <button

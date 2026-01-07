@@ -151,7 +151,7 @@ export default function CIDManager({
                           </div>
                           <button
                             onClick={() => handleCopyUrl(attachedCID.gatewayUrl, attachedCID.cid)}
-                            className={`ml-3 btn-sm ${
+                            className={`ml-3 btn-sm whitespace-nowrap flex-shrink-0 ${
                               copySuccess === attachedCID.cid ? 'btn-success' : 'btn-primary'
                             }`}
                           >
@@ -166,7 +166,7 @@ export default function CIDManager({
                   <button
                     onClick={() => handleDetachCID(attachedCID.cid)}
                     disabled={isDetaching === attachedCID.cid}
-                    className="ml-4 btn-secondary btn-sm hover:bg-[var(--error-light)] hover:text-[var(--error)] hover:border-[var(--error)]"
+                    className="ml-4 btn-secondary btn-sm whitespace-nowrap flex-shrink-0 hover:bg-[var(--error-light)] hover:text-[var(--error)] hover:border-[var(--error)]"
                   >
                     {isDetaching === attachedCID.cid ? (
                       <>
@@ -213,7 +213,7 @@ export default function CIDManager({
                 <button
                   onClick={handleBulkAttach}
                   disabled={isBulkAttaching}
-                  className="btn-primary btn-sm"
+                  className="btn-primary btn-sm whitespace-nowrap"
                 >
                   {isBulkAttaching ? (
                     <>
@@ -283,7 +283,7 @@ export default function CIDManager({
                   <button
                     onClick={() => handleAttachCID(document.cid)}
                     disabled={isAttaching === document.cid || document.isMonetized}
-                    className="ml-4 btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ml-4 btn-primary btn-sm whitespace-nowrap flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAttaching === document.cid ? (
                       <>
