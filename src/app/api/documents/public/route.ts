@@ -39,8 +39,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('Found monetized CIDs:', Array.from(monetizedCIDs));
-
     if (monetizedCIDs.size === 0) {
       return NextResponse.json({
         success: true,
@@ -94,8 +92,6 @@ export async function GET(request: NextRequest) {
           }
         };
       });
-
-    console.log(`Found ${monetizedDocuments.length} monetized documents out of ${allDocumentsResult.data!.documents.length} total documents`);
 
     // Simple pagination
     const startIndex = pageToken ? parseInt(pageToken) || 0 : 0;

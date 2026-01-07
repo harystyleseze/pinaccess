@@ -228,8 +228,6 @@ export class PinataClient {
         originalSize: String(file.size)
       };
       
-      console.log('Keyvalues being sent:', keyvalues);
-      
       // Send keyvalues directly, not nested in an object
       formData.append('keyvalues', JSON.stringify(keyvalues));
 
@@ -250,8 +248,6 @@ export class PinataClient {
           body: formData,
         }
       );
-
-      console.log('Pinata upload response:', response);
 
       return {
         success: true,
@@ -1013,8 +1009,6 @@ export class PinataClient {
           headers: this.getAuthHeaders(),
         }
       );
-
-      console.log('Pinata list response:', response);
 
       // Transform Pinata response to our Document format
       const documents = response.data.files.map(file => {

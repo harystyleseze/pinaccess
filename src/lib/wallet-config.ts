@@ -85,8 +85,6 @@ export function createWalletConfig() {
     }),
   ];
 
-  console.log('Creating wallet config with connectors');
-
   return createConfig({
     chains: [baseSepolia],
     connectors,

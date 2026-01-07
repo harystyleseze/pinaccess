@@ -71,8 +71,7 @@ export class WalletManager {
    */
   private getConnector(walletType: SupportedWallet) {
     const connectors = this.config.connectors;
-    console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id, type: c.type })));
-    
+
     switch (walletType) {
       case 'metamask':
         // Try multiple matching strategies for MetaMask
@@ -120,15 +119,12 @@ export class WalletManager {
         throw new Error(`${walletType} connector not found. Available: ${availableConnectors.join(', ')}`);
       }
 
-      console.log(`Attempting to connect with ${walletType} connector:`, connector.name);
-
       // Connect using wagmi
       const result = await connect(this.config, { connector });
-      
+
       if (result.accounts && result.accounts.length > 0) {
         this.setConnectionState('connected');
-        console.log(`Connected to ${walletType}:`, result.accounts[0]);
-        
+
         // Verify we're on the correct network
         if (result.chainId !== BASE_SEPOLIA_CHAIN_ID) {
           await this.switchToBaseSepolia();
@@ -161,10 +157,12 @@ export class WalletManager {
   async disconnectWallet(): Promise<void> {
     try {
       await disconnect(this.config);
-      this.setConnectionState('disconnected');
     } catch (error) {
-      console.error('Wallet disconnection failed:', error);
-      throw error;
+      // Some connectors don't implement disconnect - that's okay
+      // We still want to clear the local state
+      console.warn('Connector disconnect not supported, clearing local state');
+    } finally {
+      this.setConnectionState('disconnected');
     }
   }
 

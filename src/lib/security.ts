@@ -78,6 +78,17 @@ export function createRateLimiter(config: RateLimitConfig) {
     resetTime: number;
     error?: string;
   } {
+    // Bypass rate limiting in development mode
+    if (process.env.NODE_ENV !== 'production') {
+      return {
+        success: true,
+        limit: maxRequests,
+        remaining: maxRequests,
+        resetTime: Date.now() + windowMs,
+        error: undefined
+      };
+    }
+
     // Get IP from headers (works with proxies/CDNs)
     const forwarded = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');

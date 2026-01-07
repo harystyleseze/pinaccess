@@ -164,11 +164,6 @@ export class X402PaymentClient {
     walletClient: WalletClient
   ): Promise<PaymentResult> {
     try {
-      console.log('x402: Starting payment with EIP-712 signing...', {
-        gatewayUrl: paymentInfo.gatewayUrl,
-        walletAddress: walletClient.account?.address
-      });
-
       // Wrap fetch with x402 payment handling
       // The walletClient from wagmi is a SignerWallet that x402-fetch can use directly
       // The library will:
@@ -180,16 +175,9 @@ export class X402PaymentClient {
       // Using type assertion as Signer since wagmi WalletClient implements the required SignerWallet interface
       const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as unknown as Parameters<typeof wrapFetchWithPayment>[1]);
 
-      console.log('x402: Making request with automatic payment handling...');
-
       // Execute the payment flow - x402-fetch handles everything
       const response = await fetchWithPayment(paymentInfo.gatewayUrl, {
         method: 'GET',
-      });
-
-      console.log('x402: Response received:', {
-        status: response.status,
-        ok: response.ok
       });
 
       if (!response.ok) {
@@ -207,8 +195,6 @@ export class X402PaymentClient {
       const transactionHash = response.headers.get('x-transaction-hash') || 
                              response.headers.get('x-settlement-tx') ||
                              `0x${Date.now().toString(16).padStart(64, '0')}` as Hash;
-
-      console.log('x402: Payment successful!');
 
       return {
         transactionHash: transactionHash as Hash,
@@ -268,12 +254,6 @@ export class X402PaymentClient {
     paymentProof: string
   ): Promise<Response> {
     try {
-      console.log('Attempting to access content with proof:', {
-        gatewayUrl,
-        paymentProofLength: paymentProof.length,
-        paymentProofPreview: paymentProof.substring(0, 50) + '...'
-      });
-
       const response = await fetch(gatewayUrl, {
         method: 'GET',
         headers: {
@@ -281,12 +261,6 @@ export class X402PaymentClient {
           'Accept': '*/*',
           'User-Agent': 'PinAccess/1.0'
         }
-      });
-
-      console.log('Content access response:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
       });
 
       if (!response.ok) {

@@ -9,20 +9,31 @@ import { ContentViewer } from '@/components/ui/ContentViewer';
 import { useWalletConnection } from '@/lib/wallet-context';
 import {
   validatePaymentProof,
-  getContentIcon,
   formatFileSize,
   type ContentInfo
 } from '@/lib/content-access';
 import { BASE_SEPOLIA_USDC_ADDRESS } from '@/lib/wallet-config';
 import { formatUsdAmount, formatUsdcWithEquivalent } from '@/lib/pricing';
-import { AlertCircle, RefreshCw, Lock, CheckCircle, FileText, ChevronLeft, Info } from 'lucide-react';
+import { AlertCircle, RefreshCw, Lock, CheckCircle, FileText, ChevronLeft } from 'lucide-react';
+
+interface X402PaymentOption {
+  maxAmountRequired: string;
+  payTo: string;
+  resource: string;
+  network: string;
+  asset: string;
+}
+
+interface X402PaymentInfo {
+  accepts: X402PaymentOption[];
+}
 
 interface ContentPageState {
   loading: boolean;
   error: string | null;
   contentInfo: ContentInfo | null;
   paymentRequired: boolean;
-  paymentInfo: any | null;
+  paymentInfo: X402PaymentInfo | null;
   accessGranted: boolean;
   paymentProof: string | null;
 }
@@ -46,6 +57,7 @@ export default function ContentAccessPage() {
     if (cid) {
       attemptContentAccess();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cid]);
 
   const attemptContentAccess = async () => {
@@ -75,7 +87,6 @@ export default function ContentAccessPage() {
         const storedAccessResult = await tryAccessWithStoredPayment(cid, address, contentInfo);
 
         if (storedAccessResult && storedAccessResult.success) {
-          console.log('User has already paid for this content, granting access');
           setState(prev => ({
             ...prev,
             accessGranted: true,
@@ -107,7 +118,7 @@ export default function ContentAccessPage() {
         accessGranted: true,
         loading: false
       }));
-    } catch (error) {
+    } catch {
       setState(prev => ({
         ...prev,
         error: 'Failed to access content',
@@ -128,7 +139,6 @@ export default function ContentAccessPage() {
       if (response.status === 402) {
         // Payment required - get the actual x402 payment info from Pinata
         const paymentInfo = await response.json();
-        console.log('x402 Payment Info received:', paymentInfo);
 
         // Validate the x402 response structure
         if (!paymentInfo.accepts || !Array.isArray(paymentInfo.accepts) || paymentInfo.accepts.length === 0) {
@@ -149,7 +159,6 @@ export default function ContentAccessPage() {
       } else if (response.ok) {
         // Access granted (user already paid or content is free)
         // Set a special payment proof to indicate access is already granted
-        console.log('Content access: Already granted, no payment required');
         setState(prev => ({
           ...prev,
           accessGranted: true,
@@ -188,50 +197,23 @@ export default function ContentAccessPage() {
   // Handle successful payment
   const handlePaymentSuccess = async (paymentProof: string, transactionHash?: string, paidAmount?: string) => {
     try {
-      console.log('Content page: Payment successful!', {
-        cid,
-        paymentProofLength: paymentProof.length,
-        transactionHash,
-        paidAmount
-      });
-
       // Use the gateway URL from the x402 response for validation
       const gatewayUrl = state.paymentInfo?.accepts?.[0]?.resource;
-
-      console.log('Content page: Validating payment proof...', {
-        gatewayUrl,
-        hasPaymentInfo: !!state.paymentInfo
-      });
 
       // Validate payment proof
       const validation = await validatePaymentProof(cid, paymentProof, gatewayUrl);
 
-      console.log('Content page: Payment proof validation result:', validation);
-
       if (validation.isValid) {
-        console.log('Content page: Payment proof valid, granting access...');
-
-        setState(prev => {
-          const newState = {
-            ...prev,
-            paymentProof,
-            accessGranted: true,
-            paymentRequired: false,
-            loading: false
-          };
-          console.log('Content page: Setting new state after payment success:', {
-            paymentProof: newState.paymentProof,
-            paymentProofLength: newState.paymentProof?.length,
-            accessGranted: newState.accessGranted,
-            paymentRequired: newState.paymentRequired,
-            loading: newState.loading
-          });
-          return newState;
-        });
+        setState(prev => ({
+          ...prev,
+          paymentProof,
+          accessGranted: true,
+          paymentRequired: false,
+          loading: false
+        }));
 
         // Store payment record for future access
         if (address && paidAmount) {
-          console.log('Content page: Storing payment record...');
           const { contentAccessClient } = await import('@/lib/content-access');
           contentAccessClient.storePaymentRecord({
             cid,
@@ -382,9 +364,7 @@ export default function ContentAccessPage() {
                   <h4 className="font-semibold text-[var(--warning)] mb-3">Connect Your Wallet to Pay</h4>
                   <WalletConnector
                     className="max-w-md"
-                    onWalletConnect={(address, chainId) => {
-                      console.log('Wallet connected:', address, chainId);
-                    }}
+                    onWalletConnect={() => {}}
                   />
                   {!isConnected && (
                     <p className="text-sm text-[var(--text-secondary)] mt-2">
@@ -441,15 +421,7 @@ export default function ContentAccessPage() {
         )}
 
         {/* Content Access Granted */}
-        {state.accessGranted && state.contentInfo && (() => {
-          console.log('Content page: Rendering access granted section with state:', {
-            accessGranted: state.accessGranted,
-            hasPaymentProof: !!state.paymentProof,
-            paymentProofValue: state.paymentProof,
-            contentInfoName: state.contentInfo?.name
-          });
-          return true;
-        })() && (
+        {state.accessGranted && state.contentInfo && (
           <div className="max-w-4xl mx-auto">
             <div className="card p-8">
               {/* Content Header */}
@@ -482,17 +454,6 @@ export default function ContentAccessPage() {
 
               {/* Content Display using ContentViewer */}
               <div className="mb-8">
-                {(() => {
-                  console.log('Content page: Rendering ContentViewer with props:', {
-                    cid,
-                    hasPaymentProof: !!(state.paymentProof),
-                    paymentProofValue: state.paymentProof,
-                    paymentProofLength: state.paymentProof?.length,
-                    autoAccessAfterPayment: !!state.paymentProof,
-                    contentInfoName: state.contentInfo?.name
-                  });
-                  return null;
-                })()}
                 <ContentViewer
                   cid={cid}
                   paymentProof={state.paymentProof || undefined}

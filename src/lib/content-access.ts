@@ -135,22 +135,8 @@ export class ContentAccessClient {
         console.warn('Gateway URL not provided in contentInfo, using fallback. This may cause issues.');
       }
 
-      console.log('Accessing content with payment proof:', {
-        cid,
-        gatewayUrl,
-        hasPaymentProof: !!paymentProof,
-        paymentProofLength: paymentProof?.length,
-        paymentProofPreview: paymentProof?.substring(0, 50) + '...'
-      });
-
       // Access content with payment proof
       const response = await accessContentWithProof(gatewayUrl, paymentProof);
-
-      console.log('Content access response:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
 
       // Create blob URL for content
       const blob = await response.blob();
@@ -237,12 +223,6 @@ export class ContentAccessClient {
       return null;
     }
 
-    console.log('Found stored payment for content:', {
-      cid,
-      paidAt: paymentRecord.paidAt,
-      transactionHash: paymentRecord.transactionHash
-    });
-
     try {
       return await this.accessContent(cid, paymentRecord.paymentProof, contentInfo, walletAddress);
     } catch (error) {
@@ -263,14 +243,6 @@ export class ContentAccessClient {
       // Use provided gateway URL or construct default
       const url = gatewayUrl || `${getGatewayUrlWithFallback()}/x402/cid/${cid}`;
       
-      console.log('Validating payment proof:', {
-        cid,
-        gatewayUrl: url,
-        hasPaymentProof: !!paymentProof,
-        paymentProofLength: paymentProof?.length,
-        paymentProofPreview: paymentProof?.substring(0, 50) + '...'
-      });
-      
       if (!gatewayUrl) {
         console.warn('Gateway URL not provided, using fallback. This may cause issues.');
       }
@@ -285,14 +257,7 @@ export class ContentAccessClient {
         }
       });
 
-      console.log('Payment proof validation response:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-
       if (response.ok) {
-        console.log('Payment proof validation: SUCCESS');
         return {
           isValid: true,
           isExpired: false
@@ -301,9 +266,6 @@ export class ContentAccessClient {
 
       if (response.status === 402) {
         // Payment required - proof is invalid or expired
-        console.log('Payment proof validation: FAILED - 402 Payment Required');
-        const errorBody = await response.text();
-        console.log('402 Response body:', errorBody);
         return {
           isValid: false,
           isExpired: true,
@@ -311,9 +273,6 @@ export class ContentAccessClient {
         };
       }
 
-      console.log('Payment proof validation: FAILED - Other error');
-      const errorBody = await response.text();
-      console.log('Error response body:', errorBody);
       return {
         isValid: false,
         isExpired: false,

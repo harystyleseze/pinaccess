@@ -3,6 +3,7 @@ import { pinataClient } from '@/lib/pinata';
 import { validateSafeString } from '@/lib/validation';
 import { rateLimiters, validateContentSecurity, getClientIP } from '@/lib/security';
 import { DocumentListResponse } from '@/lib/types';
+import { getX402GatewayUrl } from '@/lib/gateway-config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest) {
     
     // Call Pinata client to list documents
     const result = await pinataClient.instance.listDocuments(filters);
-    
+
     if (!result.success) {
       // Enhanced error logging
       console.error('Document listing failed:', {
@@ -111,11 +112,65 @@ export async function GET(request: NextRequest) {
         error: result.error || 'Failed to retrieve documents'
       } as DocumentListResponse, { status: 500 });
     }
-    
+
+    // Fetch payment instructions to determine which documents are monetized
+    const paymentInstructionsResult = await pinataClient.instance.listPaymentInstructions({
+      pageSize: 100
+    });
+
+    // Build a map of CID -> payment info for monetized documents
+    const monetizedCIDMap = new Map<string, { price: { usd: number; usdc: string }; gatewayUrl: string }>();
+
+    if (paymentInstructionsResult.success && paymentInstructionsResult.data?.paymentInstructions) {
+      for (const pi of paymentInstructionsResult.data.paymentInstructions) {
+        try {
+          const attachedResult = await pinataClient.instance.getAttachedCids(pi.id);
+          if (attachedResult.success && attachedResult.data?.cids) {
+            const paymentReq = pi.paymentRequirements[0];
+            const maxAmount = paymentReq?.max_amount_required || '0';
+            const usdAmount = parseFloat(maxAmount) / 1000000; // Convert from USDC smallest unit
+
+            for (const attached of attachedResult.data.cids) {
+              monetizedCIDMap.set(attached.cid, {
+                price: {
+                  usd: usdAmount,
+                  usdc: maxAmount
+                },
+                gatewayUrl: getX402GatewayUrl(attached.cid)
+              });
+            }
+          }
+        } catch (e) {
+          // Silently handle errors
+        }
+      }
+    }
+
+    // Update documents with proper monetization status and pricing
+    const documents = result.data?.documents.map(doc => {
+      const monetizationInfo = monetizedCIDMap.get(doc.cid);
+      if (monetizationInfo) {
+        return {
+          ...doc,
+          isMonetized: true,
+          price: monetizationInfo.price,
+          gatewayUrl: monetizationInfo.gatewayUrl,
+          metadata: {
+            ...doc.metadata,
+            status: 'monetized' as const
+          }
+        };
+      }
+      return doc;
+    }) || [];
+
     // Return successful response
     return NextResponse.json({
       success: true,
-      data: result.data
+      data: {
+        ...result.data,
+        documents
+      }
     } as DocumentListResponse, {
       headers: {
         'X-RateLimit-Limit': rateLimitResult.limit.toString(),
