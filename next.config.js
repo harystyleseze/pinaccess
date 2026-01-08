@@ -15,10 +15,10 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          // Prevent clickjacking attacks
+          // Prevent clickjacking attacks (allow same-origin framing for content display)
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           // Prevent MIME type sniffing
           {
@@ -42,9 +42,10 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js requires unsafe-inline and unsafe-eval
               "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
-              "img-src 'self' data: https:",
+              "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://api.pinata.cloud https://gateway.mypinata.cloud",
+              "frame-src 'self' blob: data: https:", // Allow blob URLs and HTTPS for content display
+              "connect-src 'self' https://api.pinata.cloud https://gateway.mypinata.cloud https://*.mypinata.cloud https://metamask-sdk.api.cx.metamask.io https://mm-sdk-analytics.api.cx.metamask.io https://pulse.walletconnect.org https://api.web3modal.org https://sepolia.base.org https://base-sepolia.g.alchemy.com https://base-sepolia.infura.io https://rpc.ankr.com https://base-sepolia-rpc.publicnode.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

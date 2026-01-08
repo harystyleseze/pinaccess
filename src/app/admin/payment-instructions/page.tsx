@@ -7,6 +7,7 @@ import Navigation from '@/components/layout/Navigation'
 import PaymentInstructionCard from '@/components/ui/PaymentInstructionCard'
 import { TestnetWarning } from '@/components/ui/NetworkIndicator'
 import { PaymentInstruction, PaymentInstructionListResponse } from '@/lib/types'
+import { CreditCard, Paperclip, DollarSign, Plus, Search, RefreshCw, Upload, AlertCircle, X } from 'lucide-react'
 
 interface PaymentInstructionStats {
   totalInstructions: number
@@ -36,7 +37,7 @@ export default function PaymentInstructionsPage() {
       setError(null)
 
       const response = await fetch('/api/payment-instructions')
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -50,18 +51,18 @@ export default function PaymentInstructionsPage() {
       if (result.data) {
         const instructions = result.data.paymentInstructions
         setPaymentInstructions(instructions)
-        
+
         // Calculate statistics
         const totalInstructions = instructions.length
         const totalAttachedCIDs = instructions.reduce((sum, pi) => sum + (pi.attachedCIDCount || 0), 0)
-        
+
         // Calculate average price
-        const instructionsWithPrice = instructions.filter(pi => 
-          pi.paymentRequirements?.[0]?.maxAmountRequired
+        const instructionsWithPrice = instructions.filter(pi =>
+          pi.paymentRequirements?.[0]?.max_amount_required
         )
-        const averagePrice = instructionsWithPrice.length > 0 
+        const averagePrice = instructionsWithPrice.length > 0
           ? instructionsWithPrice.reduce((sum, pi) => {
-              const usdcAmount = parseInt(pi.paymentRequirements[0].maxAmountRequired)
+              const usdcAmount = parseInt(pi.paymentRequirements[0].max_amount_required)
               return sum + (usdcAmount / 1000000) // Convert USDC to USD
             }, 0) / instructionsWithPrice.length
           : 0
@@ -69,7 +70,7 @@ export default function PaymentInstructionsPage() {
         // Recent instructions (last 7 days)
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-        const recentInstructions = instructions.filter(pi => 
+        const recentInstructions = instructions.filter(pi =>
           new Date(pi.createdAt) > sevenDaysAgo
         ).length
 
@@ -150,8 +151,8 @@ export default function PaymentInstructionsPage() {
         case 'name':
           return a.name.localeCompare(b.name)
         case 'price':
-          const aPrice = a.paymentRequirements?.[0]?.maxAmountRequired ? parseInt(a.paymentRequirements[0].maxAmountRequired) : 0
-          const bPrice = b.paymentRequirements?.[0]?.maxAmountRequired ? parseInt(b.paymentRequirements[0].maxAmountRequired) : 0
+          const aPrice = a.paymentRequirements?.[0]?.max_amount_required ? parseInt(a.paymentRequirements[0].max_amount_required) : 0
+          const bPrice = b.paymentRequirements?.[0]?.max_amount_required ? parseInt(b.paymentRequirements[0].max_amount_required) : 0
           return bPrice - aPrice
         default:
           return 0
@@ -168,24 +169,25 @@ export default function PaymentInstructionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+      <div className="bg-[var(--surface)] border-b border-[var(--border)]">
         <div className="content-max-width section-padding">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center py-8 gap-6">
             <div className="animate-fade-in">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Payment Instructions</h1>
-              <p className="text-lg text-gray-600">
+              <h1 className="text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-2">Payment Instructions</h1>
+              <p className="text-lg text-[var(--text-secondary)]">
                 Create and manage reusable payment settings for your documents
               </p>
             </div>
             <Link
               href="/admin/payment-instructions/create"
-              className="btn-primary text-lg px-8 py-4 animate-pulse-gentle"
+              className="btn-primary btn-lg"
             >
-              💳 Create Payment Instruction
+              <CreditCard className="w-5 h-5" />
+              Create Payment Instruction
             </Link>
           </div>
         </div>
@@ -201,108 +203,102 @@ export default function PaymentInstructionsPage() {
         {error && (
           <div className="mb-8 p-6 status-error rounded-2xl border animate-slide-up">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-red-500 mr-3 icon-clean" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <p className="text-red-800 font-semibold">{error}</p>
+              <AlertCircle className="w-6 h-6 mr-3" />
+              <p className="font-semibold">{error}</p>
             </div>
             <button
               onClick={fetchPaymentInstructions}
-              className="mt-4 btn-error px-6 py-2"
+              className="mt-4 btn-primary"
             >
-              🔄 Retry
+              <RefreshCw className="w-4 h-4" />
+              Retry
             </button>
           </div>
         )}
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          <div className="card-gradient p-8 animate-slide-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="card p-6 animate-slide-up">
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl">💳</span>
-              </div>
-              <div className="ml-6">
-                <p className="text-sm font-semibold text-gray-600 mb-1">Total Instructions</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? <span className="loading-shimmer w-12 h-8 rounded"></span> : stats.totalInstructions}
+              <CreditCard className="w-8 h-8 text-[var(--brand-teal)] flex-shrink-0" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Total Instructions</p>
+                <p className="text-3xl font-bold text-[var(--text-primary)]">
+                  {loading ? <span className="inline-block w-12 h-8 rounded bg-[var(--surface-elevated)] animate-pulse"></span> : stats.totalInstructions}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl">📎</span>
-              </div>
-              <div className="ml-6">
-                <p className="text-sm font-semibold text-gray-600 mb-1">Attached Documents</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? <span className="loading-shimmer w-12 h-8 rounded"></span> : stats.totalAttachedCIDs}
+              <Paperclip className="w-8 h-8 text-[var(--success)] flex-shrink-0" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Attached Documents</p>
+                <p className="text-3xl font-bold text-[var(--text-primary)]">
+                  {loading ? <span className="inline-block w-12 h-8 rounded bg-[var(--surface-elevated)] animate-pulse"></span> : stats.totalAttachedCIDs}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div className="card p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div className="ml-6">
-                <p className="text-sm font-semibold text-gray-600 mb-1">Average Price</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  {loading ? <span className="loading-shimmer w-16 h-8 rounded"></span> : formatCurrency(stats.averagePrice)}
+              <DollarSign className="w-8 h-8 text-[var(--info)] flex-shrink-0" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Average Price</p>
+                <p className="text-3xl font-bold text-gradient">
+                  {loading ? <span className="inline-block w-16 h-8 rounded bg-[var(--surface-elevated)] animate-pulse"></span> : formatCurrency(stats.averagePrice)}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-8 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="card p-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🆕</span>
-              </div>
-              <div className="ml-6">
-                <p className="text-sm font-semibold text-gray-600 mb-1">Recent</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? <span className="loading-shimmer w-12 h-8 rounded"></span> : stats.recentInstructions}
+              <Plus className="w-8 h-8 text-[var(--warning)] flex-shrink-0" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Recent</p>
+                <p className="text-3xl font-bold text-[var(--text-primary)]">
+                  {loading ? <span className="inline-block w-12 h-8 rounded bg-[var(--surface-elevated)] animate-pulse"></span> : stats.recentInstructions}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Last 7 days</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Last 7 days</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="card p-8 mb-8">
+        <div className="card p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Search */}
             <div className="flex-1">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                🔍 Search Payment Instructions
+              <label htmlFor="search" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Search Payment Instructions
               </label>
-              <input
-                type="text"
-                id="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name, description, or ID..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  id="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name, description, or ID..."
+                  className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200"
+                />
+              </div>
             </div>
 
             {/* Filter */}
             <div>
-              <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-2">
-                📋 Filter
+              <label htmlFor="filter" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Filter
               </label>
               <select
                 id="filter"
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value as typeof filterBy)}
-                className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="px-4 py-3 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200"
               >
                 <option value="all">All Instructions</option>
                 <option value="with-cids">With Documents</option>
@@ -312,14 +308,14 @@ export default function PaymentInstructionsPage() {
 
             {/* Sort */}
             <div>
-              <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-2">
-                🔄 Sort By
+              <label htmlFor="sort" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Sort By
               </label>
               <select
                 id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="px-4 py-3 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-teal)] focus:border-transparent transition-all duration-200"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -332,53 +328,55 @@ export default function PaymentInstructionsPage() {
 
         {/* Payment Instructions List */}
         <div className="card">
-          <div className="px-8 py-6 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-[var(--border)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-gray-900">
+              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
                 Payment Instructions ({filteredAndSortedInstructions.length})
               </h2>
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="btn-secondary text-sm"
+                  className="btn-secondary btn-sm"
                 >
-                  ❌ Clear Search
+                  <X className="w-4 h-4" />
+                  Clear Search
                 </button>
               )}
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-6">
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                <span className="ml-4 text-gray-600 text-lg">Loading payment instructions...</span>
+                <div className="w-10 h-10 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-4 text-[var(--text-secondary)] text-lg">Loading payment instructions...</span>
               </div>
             ) : filteredAndSortedInstructions.length === 0 ? (
               <div className="text-center py-16">
                 {paymentInstructions.length === 0 ? (
                   <>
-                    <span className="text-6xl mb-6 block">💳</span>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    <CreditCard className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
                       No Payment Instructions Yet
                     </h3>
-                    <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    <p className="text-[var(--text-secondary)] mb-8 max-w-md mx-auto">
                       Create your first payment instruction to start monetizing your documents with reusable payment settings.
                     </p>
                     <Link
                       href="/admin/payment-instructions/create"
-                      className="btn-primary text-lg px-8 py-4"
+                      className="btn-primary btn-lg"
                     >
-                      💳 Create Your First Payment Instruction
+                      <CreditCard className="w-5 h-5" />
+                      Create Your First Payment Instruction
                     </Link>
                   </>
                 ) : (
                   <>
-                    <span className="text-6xl mb-6 block">🔍</span>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    <Search className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
                       No Results Found
                     </h3>
-                    <p className="text-gray-600 mb-8">
+                    <p className="text-[var(--text-secondary)] mb-8">
                       No payment instructions match your current search and filter criteria.
                     </p>
                     <button
@@ -388,13 +386,14 @@ export default function PaymentInstructionsPage() {
                       }}
                       className="btn-secondary"
                     >
-                      🔄 Reset Filters
+                      <RefreshCw className="w-4 h-4" />
+                      Reset Filters
                     </button>
                   </>
                 )}
               </div>
             ) : (
-              <div className="grid gap-8">
+              <div className="grid gap-6">
                 {filteredAndSortedInstructions.map((paymentInstruction) => (
                   <PaymentInstructionCard
                     key={paymentInstruction.id}
@@ -411,45 +410,39 @@ export default function PaymentInstructionsPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-12 card p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-12 card p-6">
+          <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-6">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/admin/payment-instructions/create"
-              className="flex items-center p-6 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:shadow-md"
+              className="flex items-center p-4 border border-[var(--border)] rounded-xl hover:bg-[var(--surface-elevated)] transition-all duration-200"
             >
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-6">
-                <span className="text-2xl">💳</span>
-              </div>
+              <CreditCard className="w-6 h-6 text-[var(--brand-teal)] mr-4 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-gray-900 mb-1">Create Payment Instruction</p>
-                <p className="text-sm text-gray-600">Set up new payment requirements</p>
+                <p className="font-semibold text-[var(--text-primary)] mb-1">Create Payment Instruction</p>
+                <p className="text-sm text-[var(--text-secondary)]">Set up new payment requirements</p>
               </div>
             </Link>
 
             <Link
               href="/admin/upload"
-              className="flex items-center p-6 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:shadow-md"
+              className="flex items-center p-4 border border-[var(--border)] rounded-xl hover:bg-[var(--surface-elevated)] transition-all duration-200"
             >
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-6">
-                <span className="text-2xl">📤</span>
-              </div>
+              <Upload className="w-6 h-6 text-[var(--success)] mr-4 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-gray-900 mb-1">Upload Document</p>
-                <p className="text-sm text-gray-600">Add documents to monetize</p>
+                <p className="font-semibold text-[var(--text-primary)] mb-1">Upload Document</p>
+                <p className="text-sm text-[var(--text-secondary)]">Add documents to monetize</p>
               </div>
             </Link>
 
             <button
               onClick={fetchPaymentInstructions}
-              className="flex items-center p-6 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:shadow-md"
+              className="flex items-center p-4 border border-[var(--border)] rounded-xl hover:bg-[var(--surface-elevated)] transition-all duration-200 w-full text-left"
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-6">
-                <span className="text-2xl">🔄</span>
-              </div>
+              <RefreshCw className="w-6 h-6 text-[var(--info)] mr-4 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-gray-900 mb-1">Refresh Data</p>
-                <p className="text-sm text-gray-600">Update payment instructions</p>
+                <p className="font-semibold text-[var(--text-primary)] mb-1">Refresh Data</p>
+                <p className="text-sm text-[var(--text-secondary)]">Update payment instructions</p>
               </div>
             </button>
           </div>

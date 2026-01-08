@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BarChart3 } from 'lucide-react';
 
 interface ChartData {
   date: string;
@@ -35,7 +36,7 @@ export default function AnalyticsChart({ data, type, title, loading }: Analytics
   const showTooltip = (event: React.MouseEvent, item: ChartData) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const value = type === 'requests' ? item.requests : item.bandwidth;
-    
+
     setTooltip({
       visible: true,
       x: rect.left + rect.width / 2,
@@ -66,18 +67,18 @@ export default function AnalyticsChart({ data, type, title, loading }: Analytics
   if (loading) {
     // Use deterministic heights to avoid hydration mismatch
     const loadingHeights = [60, 120, 80, 150, 90, 110, 140, 70, 100, 130, 85, 95, 160, 75, 125, 105, 135, 65, 115, 145, 80, 100, 120, 90, 110, 140, 70, 155, 85, 125];
-    
+
     return (
       <div className="card">
-        <div className="px-8 py-6 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
         </div>
-        <div className="p-8">
+        <div className="p-6">
           <div className="flex items-end space-x-2 h-64">
             {Array.from({ length: 30 }).map((_, i) => (
-              <div 
-                key={i} 
-                className="loading-shimmer flex-1 rounded-t"
+              <div
+                key={i}
+                className="flex-1 rounded-t bg-[var(--surface-elevated)] animate-pulse"
                 style={{ height: `${loadingHeights[i]}px` }}
               ></div>
             ))}
@@ -90,15 +91,13 @@ export default function AnalyticsChart({ data, type, title, loading }: Analytics
   if (!data || data.length === 0) {
     return (
       <div className="card">
-        <div className="px-8 py-6 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
         </div>
-        <div className="p-8">
+        <div className="p-6">
           <div className="text-center py-12">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4 icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z" />
-            </svg>
-            <p className="text-gray-600">No {type} data available</p>
+            <BarChart3 className="w-16 h-16 text-[var(--text-muted)] mx-auto mb-4" />
+            <p className="text-[var(--text-secondary)]">No {type} data available</p>
           </div>
         </div>
       </div>
@@ -115,7 +114,7 @@ export default function AnalyticsChart({ data, type, title, loading }: Analytics
       {/* Global tooltip */}
       {tooltip.visible && (
         <div
-          className="fixed px-4 py-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl border border-gray-700 whitespace-nowrap pointer-events-none"
+          className="fixed px-4 py-3 bg-[var(--surface)] text-[var(--text-primary)] text-sm rounded-lg shadow-xl border border-[var(--border)] whitespace-nowrap pointer-events-none"
           style={{
             left: tooltip.x,
             top: tooltip.y,
@@ -123,74 +122,74 @@ export default function AnalyticsChart({ data, type, title, loading }: Analytics
             zIndex: 9999
           }}
         >
-          <div className="font-semibold text-gray-100 mb-1">
-            {new Date(tooltip.date).toLocaleDateString('en-US', { 
-              month: 'short', 
+          <div className="font-semibold text-[var(--text-primary)] mb-1">
+            {new Date(tooltip.date).toLocaleDateString('en-US', {
+              month: 'short',
               day: 'numeric',
               year: 'numeric'
             })}
           </div>
-          <div className="text-white font-medium">
+          <div className="text-[var(--text-secondary)] font-medium">
             {type === 'requests' ? 'Uploads: ' : 'Monetized: '}{formatValue(tooltip.value)}
           </div>
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[var(--border)]"></div>
         </div>
       )}
-      
+
       <div className="card">
-        <div className="px-8 py-6 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-[var(--border)]">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-            <div className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
+            <div className="text-sm text-[var(--text-secondary)]">
               Total: {formatValue(values.reduce((sum, val) => sum + val, 0))}
             </div>
           </div>
         </div>
-        <div className="p-8">
+        <div className="p-6">
           <div className="flex items-end space-x-1 h-64 overflow-x-auto">
             {data.map((item) => {
               const value = type === 'requests' ? item.requests : item.bandwidth;
               const height = range > 0 ? ((value - minValue) / range) * 200 + 20 : 20;
-              
+
               return (
-                <div 
-                  key={item.date} 
+                <div
+                  key={item.date}
                   className="flex flex-col items-center min-w-8 cursor-pointer"
                   onMouseEnter={(e) => showTooltip(e, item)}
                   onMouseLeave={hideTooltip}
                 >
-                  <div 
+                  <div
                     className={`${
-                      type === 'requests' 
-                        ? 'bg-gradient-to-t from-blue-500 to-purple-600' 
-                        : 'bg-gradient-to-t from-green-500 to-emerald-600'
+                      type === 'requests'
+                        ? 'bg-gradient-to-t from-[var(--brand-teal)] to-[var(--brand-cyan)]'
+                        : 'bg-gradient-to-t from-[var(--success)] to-[var(--success)]'
                     } rounded-t w-6 transition-all duration-300 hover:opacity-80`}
                     style={{ height: `${height}px` }}
                   ></div>
-                  <p className="text-xs text-gray-500 mt-2 transform -rotate-45 origin-left">
+                  <p className="text-xs text-[var(--text-muted)] mt-2 transform -rotate-45 origin-left">
                     {new Date(item.date).getDate()}
                   </p>
                 </div>
               );
             })}
           </div>
-        
+
           {/* Legend */}
           <div className="mt-6 flex items-center justify-center space-x-6">
             <div className="flex items-center space-x-2">
               <div className={`w-4 h-4 rounded ${
-                type === 'requests' 
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
-                  : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                type === 'requests'
+                  ? 'bg-gradient-to-r from-[var(--brand-teal)] to-[var(--brand-cyan)]'
+                  : 'bg-[var(--success)]'
               }`}></div>
-              <span className="text-sm text-gray-600 capitalize">{type}</span>
+              <span className="text-sm text-[var(--text-secondary)] capitalize">{type}</span>
             </div>
             {maxValue > 0 && (
               <>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-[var(--text-muted)]">
                   Peak: {formatValue(maxValue)}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-[var(--text-muted)]">
                   Avg: {formatValue(Math.round(values.reduce((sum, val) => sum + val, 0) / values.length))}
                 </div>
               </>

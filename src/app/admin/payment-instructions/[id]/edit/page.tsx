@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Navigation from '@/components/layout/Navigation'
 import PaymentInstructionForm from '@/components/ui/PaymentInstructionForm'
 import { PaymentInstruction, PaymentInstructionFormData, PaymentInstructionResponse } from '@/lib/types'
+import { AlertCircle, AlertTriangle, Link2, Globe, ChevronLeft, Loader2 } from 'lucide-react'
 
 export default function EditPaymentInstructionPage() {
   const router = useRouter()
@@ -23,7 +24,7 @@ export default function EditPaymentInstructionPage() {
       setError(null)
 
       const response = await fetch(`/api/payment-instructions/${id}`)
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch payment instruction: ${response.statusText}`)
       }
@@ -89,12 +90,12 @@ export default function EditPaymentInstructionPage() {
 
   if (fetchLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-[var(--background)]">
         <Navigation />
         <div className="content-max-width section-padding py-16">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600 text-lg">Loading payment instruction...</span>
+            <div className="w-10 h-10 border-2 border-[var(--brand-teal)] border-t-transparent rounded-full animate-spin"></div>
+            <span className="ml-4 text-[var(--text-secondary)] text-lg">Loading payment instruction...</span>
           </div>
         </div>
       </div>
@@ -103,19 +104,22 @@ export default function EditPaymentInstructionPage() {
 
   if (error || !paymentInstruction) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-[var(--background)]">
         <Navigation />
         <div className="content-max-width section-padding py-16">
           <div className="text-center">
-            <span className="text-6xl mb-6 block">❌</span>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="w-20 h-20 bg-[var(--error-light)] rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-10 h-10 text-[var(--error)]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
               {error || 'Payment Instruction Not Found'}
             </h2>
-            <p className="text-gray-600 mb-8">
-              The payment instruction you're trying to edit doesn't exist or couldn't be loaded.
+            <p className="text-[var(--text-secondary)] mb-8">
+              The payment instruction you&apos;re trying to edit doesn&apos;t exist or couldn&apos;t be loaded.
             </p>
             <Link href="/admin/payment-instructions" className="btn-primary">
-              ← Back to Payment Instructions
+              <ChevronLeft className="w-4 h-4" />
+              Back to Payment Instructions
             </Link>
           </div>
         </div>
@@ -124,35 +128,36 @@ export default function EditPaymentInstructionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navigation />
-      
+
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+      <div className="bg-[var(--surface)] border-b border-[var(--border)]">
         <div className="content-max-width section-padding">
           <div className="py-8">
             <div className="animate-fade-in">
               <div className="flex items-center space-x-3 mb-4">
-                <Link 
+                <Link
                   href="/admin/payment-instructions"
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex items-center"
                 >
-                  ← Payment Instructions
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Payment Instructions
                 </Link>
-                <span className="text-gray-300">/</span>
-                <Link 
+                <span className="text-[var(--border)]">/</span>
+                <Link
                   href={`/admin/payment-instructions/${id}`}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   {paymentInstruction.name}
                 </Link>
-                <span className="text-gray-300">/</span>
-                <span className="text-gray-700">Edit</span>
+                <span className="text-[var(--border)]">/</span>
+                <span className="text-[var(--text-secondary)]">Edit</span>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-2">
                 Edit Payment Instruction
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-[var(--text-secondary)]">
                 Update payment requirements and settings
               </p>
             </div>
@@ -165,10 +170,8 @@ export default function EditPaymentInstructionPage() {
         {error && (
           <div className="mb-8 p-6 status-error rounded-2xl border animate-slide-up">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-red-500 mr-3 icon-clean" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <p className="text-red-800 font-semibold">{error}</p>
+              <AlertCircle className="w-6 h-6 mr-3" />
+              <p className="font-semibold">{error}</p>
             </div>
           </div>
         )}
@@ -183,51 +186,51 @@ export default function EditPaymentInstructionPage() {
         />
 
         {/* Warning Section */}
-        <div className="mt-12 card p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <span className="text-2xl mr-3">⚠️</span>
+        <div className="mt-12 card p-6">
+          <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-6 flex items-center">
+            <AlertTriangle className="w-6 h-6 mr-3 text-[var(--warning)]" />
             Important Notes
           </h3>
-          
+
           <div className="space-y-4">
-            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+            <div className="p-4 bg-[var(--warning-light)] rounded-xl border border-[var(--warning)]/20">
               <div className="flex items-start space-x-3">
-                <span className="text-yellow-600 text-lg">💡</span>
+                <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-yellow-800 font-medium mb-1">
+                  <p className="text-sm text-[var(--warning)] font-medium mb-1">
                     Attached Documents
                   </p>
-                  <p className="text-xs text-yellow-700">
-                    Changes to pricing will affect all documents currently attached to this payment instruction. 
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Changes to pricing will affect all documents currently attached to this payment instruction.
                     Existing gateway URLs will continue to work with the new pricing.
                   </p>
                 </div>
               </div>
             </div>
-            
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+
+            <div className="p-4 bg-[var(--info-light)] rounded-xl border border-[var(--info)]/20">
               <div className="flex items-start space-x-3">
-                <span className="text-blue-600 text-lg">🔗</span>
+                <Link2 className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-blue-800 font-medium mb-1">
+                  <p className="text-sm text-[var(--info)] font-medium mb-1">
                     Wallet Address Changes
                   </p>
-                  <p className="text-xs text-blue-700">
-                    Updating the wallet address will change where future payments are sent. 
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Updating the wallet address will change where future payments are sent.
                     Make sure you have access to the new wallet address.
                   </p>
                 </div>
               </div>
             </div>
-            
-            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+
+            <div className="p-4 bg-[var(--success-light)] rounded-xl border border-[var(--success)]/20">
               <div className="flex items-start space-x-3">
-                <span className="text-green-600 text-lg">🌐</span>
+                <Globe className="w-5 h-5 text-[var(--success)] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-green-800 font-medium mb-1">
+                  <p className="text-sm text-[var(--success)] font-medium mb-1">
                     Testnet Environment
                   </p>
-                  <p className="text-xs text-green-700">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     Remember that this is using Base Sepolia testnet. All transactions are for testing purposes only.
                   </p>
                 </div>

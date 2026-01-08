@@ -3,6 +3,7 @@ import { pinataClient } from '@/lib/pinata';
 import { validateSafeString } from '@/lib/validation';
 import { rateLimiters, validateContentSecurity, getClientIP } from '@/lib/security';
 import { DocumentListResponse } from '@/lib/types';
+import { getX402GatewayUrl } from '@/lib/gateway-config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -88,21 +89,24 @@ export async function GET(request: NextRequest) {
     }
     
     // Build filters object with sanitized inputs
-    const filters = {
+    // Don't pass 'monetized' status to Pinata - monetization is determined dynamically
+    // from payment instruction attachments, not from stored metadata
+    const pinataFilters = {
       ...(creator && { creator: creator.trim() }),
-      ...(status && { status }),
+      ...(status && status !== 'monetized' && { status }),
       ...(pageToken && { pageToken: pageToken.trim() }),
-      ...(pageSize && { pageSize })
+      // Fetch more if filtering by monetized to ensure we get enough results
+      ...(pageSize && { pageSize: status === 'monetized' ? 100 : pageSize })
     };
-    
+
     // Call Pinata client to list documents
-    const result = await pinataClient.instance.listDocuments(filters);
-    
+    const result = await pinataClient.instance.listDocuments(pinataFilters);
+
     if (!result.success) {
       // Enhanced error logging
       console.error('Document listing failed:', {
         error: result.error,
-        filters,
+        filters: pinataFilters,
         ip: getClientIP(request)
       });
 
@@ -111,11 +115,70 @@ export async function GET(request: NextRequest) {
         error: result.error || 'Failed to retrieve documents'
       } as DocumentListResponse, { status: 500 });
     }
-    
+
+    // Fetch payment instructions to determine which documents are monetized
+    const paymentInstructionsResult = await pinataClient.instance.listPaymentInstructions({
+      pageSize: 100
+    });
+
+    // Build a map of CID -> payment info for monetized documents
+    const monetizedCIDMap = new Map<string, { price: { usd: number; usdc: string }; gatewayUrl: string }>();
+
+    if (paymentInstructionsResult.success && paymentInstructionsResult.data?.paymentInstructions) {
+      for (const pi of paymentInstructionsResult.data.paymentInstructions) {
+        try {
+          const attachedResult = await pinataClient.instance.getAttachedCids(pi.id);
+          if (attachedResult.success && attachedResult.data?.cids) {
+            const paymentReq = pi.paymentRequirements[0];
+            const maxAmount = paymentReq?.max_amount_required || '0';
+            const usdAmount = parseFloat(maxAmount) / 1000000; // Convert from USDC smallest unit
+
+            for (const attached of attachedResult.data.cids) {
+              monetizedCIDMap.set(attached.cid, {
+                price: {
+                  usd: usdAmount,
+                  usdc: maxAmount
+                },
+                gatewayUrl: getX402GatewayUrl(attached.cid)
+              });
+            }
+          }
+        } catch (e) {
+          // Silently handle errors
+        }
+      }
+    }
+
+    // Update documents with proper monetization status and pricing
+    let documents = result.data?.documents.map(doc => {
+      const monetizationInfo = monetizedCIDMap.get(doc.cid);
+      if (monetizationInfo) {
+        return {
+          ...doc,
+          isMonetized: true,
+          price: monetizationInfo.price,
+          gatewayUrl: monetizationInfo.gatewayUrl,
+          metadata: {
+            ...doc.metadata,
+            status: 'monetized' as const
+          }
+        };
+      }
+      return doc;
+    }) || [];
+
+    // Apply client-side filter for monetized status (since it's determined dynamically)
+    if (status === 'monetized') {
+      documents = documents.filter(doc => doc.isMonetized === true);
+    }
+
     // Return successful response
     return NextResponse.json({
       success: true,
-      data: result.data
+      data: {
+        ...result.data,
+        documents
+      }
     } as DocumentListResponse, {
       headers: {
         'X-RateLimit-Limit': rateLimitResult.limit.toString(),

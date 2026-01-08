@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { Copy, Check, Link2, Trash2, Paperclip, FolderOpen, Info } from 'lucide-react'
 import { CIDManagerProps } from '@/lib/types'
 
 export default function CIDManager({
@@ -41,7 +42,7 @@ export default function CIDManager({
 
   const handleBulkAttach = async () => {
     if (selectedCIDs.size === 0) return
-    
+
     setIsBulkAttaching(true)
     try {
       await onBulkAttach(Array.from(selectedCIDs))
@@ -98,29 +99,21 @@ export default function CIDManager({
     })
   }
 
-  const getMimeTypeIcon = (mimeType: string): string => {
-    if (mimeType.includes('pdf')) return '📄'
-    if (mimeType.includes('epub')) return '📚'
-    if (mimeType.includes('text')) return '📝'
-    return '📄'
-  }
-
   return (
     <div className="space-y-8" data-payment-instruction-id={paymentInstructionId}>
       {/* Attached CIDs Section */}
       <div>
-        <div className="flex items-center space-x-3 mb-6">
-          <span className="text-2xl">📎</span>
-          <h3 className="text-xl font-semibold text-gray-900">
+        <div className="flex items-center gap-3 mb-6">
+          <Paperclip className="w-5 h-5 text-[var(--brand-teal)]" />
+          <h3 className="text-xl font-semibold text-[var(--text-primary)]">
             Attached Documents ({attachedCIDs.length})
           </h3>
         </div>
 
         {attachedCIDs.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-            <span className="text-4xl mb-4 block">📄</span>
-            <p className="text-gray-500 font-medium">No documents attached yet</p>
-            <p className="text-sm text-gray-400 mt-1">
+          <div className="text-center py-12 bg-[var(--surface-elevated)] rounded-xl border-2 border-dashed border-[var(--border)]">
+            <p className="text-[var(--text-muted)] font-medium">No documents attached yet</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
               Attach documents below to start monetizing them
             </p>
           </div>
@@ -129,58 +122,62 @@ export default function CIDManager({
             {attachedCIDs.map((attachedCID) => (
               <div
                 key={attachedCID.cid}
-                className="card-gradient p-6 hover:shadow-lg transition-all duration-200 animate-slide-up"
+                className="card p-6 animate-slide-up"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <span className="text-2xl">
-                      {getMimeTypeIcon(attachedCID.mimeType)}
-                    </span>
+                  <div className="flex items-start gap-4 flex-1">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">
+                      <h4 className="font-semibold text-[var(--text-primary)] truncate">
                         {attachedCID.documentName}
                       </h4>
-                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
-                        <span key={`size-${attachedCID.cid}`}>📊 {formatFileSize(attachedCID.fileSize)}</span>
-                        <span key={`date-${attachedCID.cid}`}>📅 {formatDate(attachedCID.uploadDate)}</span>
+                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-[var(--text-muted)]">
+                        <span key={`size-${attachedCID.cid}`}>{formatFileSize(attachedCID.fileSize)}</span>
+                        <span key={`date-${attachedCID.cid}`}>{formatDate(attachedCID.uploadDate)}</span>
                         <span key={`cid-${attachedCID.cid}`} className="font-mono text-xs truncate max-w-xs">
-                          🔗 {attachedCID.cid}
+                          {attachedCID.cid}
                         </span>
                       </div>
-                      
+
                       {/* Gateway URL */}
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="mt-3 p-3 bg-[var(--primary-light)] rounded-lg border border-[var(--brand-teal)]/20">
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-blue-600 mb-1 font-medium">
-                              🔗 Gateway URL:
+                            <p className="text-xs text-[var(--brand-teal)] mb-1 font-medium">
+                              Gateway URL
                             </p>
-                            <p className="text-sm text-blue-900 font-mono truncate">
+                            <p className="text-sm text-[var(--text-primary)] font-mono truncate">
                               {attachedCID.gatewayUrl}
                             </p>
                           </div>
                           <button
                             onClick={() => handleCopyUrl(attachedCID.gatewayUrl, attachedCID.cid)}
-                            className={`ml-3 px-3 py-1 text-xs transition-all duration-200 ${
+                            className={`ml-3 btn-sm whitespace-nowrap flex-shrink-0 ${
                               copySuccess === attachedCID.cid ? 'btn-success' : 'btn-primary'
                             }`}
                           >
-                            {copySuccess === attachedCID.cid ? '✅ Copied' : '📋 Copy'}
+                            {copySuccess === attachedCID.cid ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copySuccess === attachedCID.cid ? 'Copied' : 'Copy'}
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleDetachCID(attachedCID.cid)}
                     disabled={isDetaching === attachedCID.cid}
-                    className="ml-4 btn-secondary hover:bg-red-50 hover:text-red-600 text-sm transform hover:scale-105 transition-all duration-200"
+                    className="ml-4 btn-secondary btn-sm whitespace-nowrap flex-shrink-0 hover:bg-[var(--error-light)] hover:text-[var(--error)] hover:border-[var(--error)]"
                   >
                     {isDetaching === attachedCID.cid ? (
-                      <>🔄 Detaching...</>
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Detaching...
+                      </>
                     ) : (
-                      <>🗑️ Detach</>
+                      <>
+                        <Trash2 className="w-4 h-4" />
+                        Detach
+                      </>
                     )}
                   </button>
                 </div>
@@ -193,35 +190,41 @@ export default function CIDManager({
       {/* Available CIDs Section */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">📁</span>
-            <h3 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center gap-3">
+            <FolderOpen className="w-5 h-5 text-[var(--brand-teal)]" />
+            <h3 className="text-xl font-semibold text-[var(--text-primary)]">
               Available Documents ({availableCIDs.length})
             </h3>
           </div>
-          
+
           {availableCIDs.length > 0 && (
-            <div className="flex items-center space-x-3">
-              <label className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                 <input
                   type="checkbox"
                   checked={selectedCIDs.size === availableCIDs.length && availableCIDs.length > 0}
                   onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-[var(--border)] text-[var(--brand-teal)] focus:ring-[var(--brand-teal)]"
                 />
                 <span>Select All</span>
               </label>
-              
+
               {selectedCIDs.size > 0 && (
                 <button
                   onClick={handleBulkAttach}
                   disabled={isBulkAttaching}
-                  className="btn-primary text-sm transform hover:scale-105 transition-all duration-200"
+                  className="btn-primary btn-sm whitespace-nowrap"
                 >
                   {isBulkAttaching ? (
-                    <>🔄 Attaching {selectedCIDs.size}...</>
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Attaching {selectedCIDs.size}...
+                    </>
                   ) : (
-                    <>📎 Attach Selected ({selectedCIDs.size})</>
+                    <>
+                      <Paperclip className="w-4 h-4" />
+                      Attach Selected ({selectedCIDs.size})
+                    </>
                   )}
                 </button>
               )}
@@ -230,10 +233,9 @@ export default function CIDManager({
         </div>
 
         {availableCIDs.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-            <span className="text-4xl mb-4 block">📂</span>
-            <p className="text-gray-500 font-medium">No available documents</p>
-            <p className="text-sm text-gray-400 mt-1">
+          <div className="text-center py-12 bg-[var(--surface-elevated)] rounded-xl border-2 border-dashed border-[var(--border)]">
+            <p className="text-[var(--text-muted)] font-medium">No available documents</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
               Upload documents first to attach them to payment instructions
             </p>
           </div>
@@ -242,57 +244,59 @@ export default function CIDManager({
             {availableCIDs.map((document) => (
               <div
                 key={document.cid}
-                className="card-gradient p-6 hover:shadow-lg transition-all duration-200 animate-slide-up"
+                className="card p-6 animate-slide-up"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
+                  <div className="flex items-start gap-4 flex-1">
                     <input
                       type="checkbox"
                       checked={selectedCIDs.has(document.cid)}
                       onChange={(e) => handleSelectCID(document.cid, e.target.checked)}
-                      className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="mt-1 rounded border-[var(--border)] text-[var(--brand-teal)] focus:ring-[var(--brand-teal)]"
                     />
-                    
-                    <span className="text-2xl">
-                      {getMimeTypeIcon(document.mimeType)}
-                    </span>
-                    
+
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">
+                      <h4 className="font-semibold text-[var(--text-primary)] truncate">
                         {document.name}
                       </h4>
-                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
-                        <span key={`size-${document.cid}`}>📊 {formatFileSize(document.size)}</span>
-                        <span key={`date-${document.cid}`}>📅 {formatDate(document.createdAt)}</span>
-                        <span key={`creator-${document.cid}`}>👤 {document.metadata.creator}</span>
+                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-[var(--text-muted)]">
+                        <span key={`size-${document.cid}`}>{formatFileSize(document.size)}</span>
+                        <span key={`date-${document.cid}`}>{formatDate(document.createdAt)}</span>
+                        <span key={`creator-${document.cid}`}>{document.metadata.creator}</span>
                       </div>
                       <div className="mt-2">
-                        <span className="font-mono text-xs text-gray-400 truncate max-w-xs block">
-                          🔗 {document.cid}
+                        <span className="font-mono text-xs text-[var(--text-muted)] truncate max-w-xs block">
+                          {document.cid}
                         </span>
                       </div>
-                      
+
                       {document.isMonetized && (
                         <div className="mt-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            ⚠️ Already monetized
+                          <span className="badge badge-warning">
+                            Already monetized
                           </span>
                         </div>
                       )}
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleAttachCID(document.cid)}
                     disabled={isAttaching === document.cid || document.isMonetized}
-                    className="ml-4 btn-primary text-sm transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ml-4 btn-primary btn-sm whitespace-nowrap flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAttaching === document.cid ? (
-                      <>🔄 Attaching...</>
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Attaching...
+                      </>
                     ) : document.isMonetized ? (
-                      <>⚠️ Already Attached</>
+                      'Already Attached'
                     ) : (
-                      <>📎 Attach</>
+                      <>
+                        <Paperclip className="w-4 h-4" />
+                        Attach
+                      </>
                     )}
                   </button>
                 </div>
@@ -303,18 +307,18 @@ export default function CIDManager({
       </div>
 
       {/* Help Text */}
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <div className="flex items-start space-x-3">
-          <span className="text-blue-600 text-lg">💡</span>
+      <div className="p-4 bg-[var(--info-light)] rounded-xl border border-[var(--info)]/20">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-blue-800 mb-2">
+            <h4 className="text-sm font-medium text-[var(--info)] mb-2">
               How CID Management Works
             </h4>
-            <div className="text-xs text-blue-700 space-y-1">
-              <p key="attach-help">• <strong>Attach:</strong> Link documents to this payment instruction to monetize them</p>
-              <p key="detach-help">• <strong>Detach:</strong> Remove documents from this payment instruction (stops monetization)</p>
-              <p key="gateway-help">• <strong>Gateway URLs:</strong> Share these links with buyers to enable paid access</p>
-              <p key="bulk-help">• <strong>Bulk Operations:</strong> Select multiple documents to attach them all at once</p>
+            <div className="text-xs text-[var(--text-secondary)] space-y-1">
+              <p key="attach-help"><strong>Attach:</strong> Link documents to this payment instruction to monetize them</p>
+              <p key="detach-help"><strong>Detach:</strong> Remove documents from this payment instruction (stops monetization)</p>
+              <p key="gateway-help"><strong>Gateway URLs:</strong> Share these links with buyers to enable paid access</p>
+              <p key="bulk-help"><strong>Bulk Operations:</strong> Select multiple documents to attach them all at once</p>
             </div>
           </div>
         </div>

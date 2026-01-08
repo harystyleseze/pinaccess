@@ -51,23 +51,38 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaymentIns
       }, { status: 500 })
     }
 
-    // Transform the response to match our interface
-    const paymentInstructions = result.data?.paymentInstructions?.map(pi => ({
-      id: pi.id,
-      version: pi.version,
-      name: pi.name,
-      description: pi.description,
-      paymentRequirements: pi.paymentRequirements.map(req => ({
-        asset: req.asset,
-        payTo: req.pay_to,
-        network: req.network as 'base-sepolia',
-        description: req.description,
-        maxAmountRequired: req.max_amount_required
-      })),
-      createdAt: pi.createdAt,
-      updatedAt: pi.updatedAt,
-      attachedCIDCount: 0 // This would need to be fetched separately if needed
-    })) || []
+    // Fetch attached CID counts for each payment instruction
+    const paymentInstructions = await Promise.all(
+      (result.data?.paymentInstructions || []).map(async (pi) => {
+        // Get attached CIDs count for this payment instruction
+        let attachedCIDCount = 0
+        try {
+          const attachedResult = await pinataClient.instance.getAttachedCids(pi.id)
+          if (attachedResult.success && attachedResult.data?.cids) {
+            attachedCIDCount = attachedResult.data.cids.length
+          }
+        } catch (e) {
+          // Silently handle errors fetching attached CIDs
+        }
+
+        return {
+          id: pi.id,
+          version: pi.version,
+          name: pi.name,
+          description: pi.description,
+          paymentRequirements: pi.paymentRequirements.map(req => ({
+            asset: req.asset,
+            pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
+            network: req.network as 'base-sepolia',
+            description: req.description,
+            max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
+          })),
+          createdAt: pi.createdAt,
+          updatedAt: pi.updatedAt,
+          attachedCIDCount
+        }
+      })
+    )
 
     return NextResponse.json({
       success: true,
@@ -174,10 +189,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<PaymentIn
       description: result.data!.description,
       paymentRequirements: result.data!.paymentRequirements.map(req => ({
         asset: req.asset,
-        payTo: req.pay_to,
+        pay_to: req.pay_to, // Keep snake_case to match PaymentRequirement interface
         network: req.network as 'base-sepolia',
         description: req.description,
-        maxAmountRequired: req.max_amount_required
+        max_amount_required: req.max_amount_required // Keep snake_case to match PaymentRequirement interface
       })),
       createdAt: new Date().toISOString(), // Set current timestamp for new instructions
       attachedCIDCount: 0

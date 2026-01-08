@@ -39,10 +39,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<AttachCid
     }
 
     // Parse the request body
-    let body: any;
+    let body: { cid?: string; paymentInstructionId?: string };
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json({
         success: false,
         error: 'Invalid JSON in request body'

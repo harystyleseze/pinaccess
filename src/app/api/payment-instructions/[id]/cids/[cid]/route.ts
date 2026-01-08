@@ -3,6 +3,7 @@ import { pinataClient } from '@/lib/pinata'
 import { validateCID } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/security'
 import { type CIDAttachmentResponse } from '@/lib/types'
+import { getX402GatewayUrl } from '@/lib/gateway-config'
 
 // PUT /api/payment-instructions/[id]/cids/[cid] - Attach CID to payment instruction
 export async function PUT(
@@ -86,7 +87,7 @@ export async function PUT(
     }
 
     // Generate gateway URL
-    const gatewayUrl = `https://gateway.mypinata.cloud/x402/cid/${cid}`
+    const gatewayUrl = getX402GatewayUrl(cid)
 
     return NextResponse.json({
       success: true,

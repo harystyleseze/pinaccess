@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { FileText, DollarSign, TrendingUp } from 'lucide-react';
 
 interface AnalyticsData {
   totalDocuments: number;
@@ -22,7 +23,7 @@ export default function AnalyticsWidget({ className = '' }: AnalyticsWidgetProps
       try {
         const response = await fetch('/api/analytics/summary?days=30');
         const result = await response.json();
-        
+
         if (result.success && result.data) {
           setAnalytics(result.data);
         }
@@ -50,75 +51,63 @@ export default function AnalyticsWidget({ className = '' }: AnalyticsWidgetProps
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+      <div className="flex items-center justify-between p-4 card">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-            <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
+          <FileText className="w-5 h-5 text-[var(--brand-teal)] mr-3" />
           <div>
-            <p className="text-sm font-semibold text-gray-700">Total Documents</p>
-            <p className="text-xs text-gray-600">All uploaded files</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Total Documents</p>
+            <p className="text-xs text-[var(--text-muted)]">All uploaded files</p>
           </div>
         </div>
         <div className="text-right">
           {loading ? (
-            <div className="loading-shimmer w-12 h-6 rounded"></div>
+            <div className="w-12 h-6 rounded bg-[var(--surface-elevated)] animate-pulse"></div>
           ) : (
             <>
-              <p className="text-lg font-bold text-gray-900">{formatNumber(analytics?.totalDocuments || 0)}</p>
-              <p className="text-xs text-gray-500">Documents</p>
+              <p className="text-lg font-bold text-[var(--text-primary)]">{formatNumber(analytics?.totalDocuments || 0)}</p>
+              <p className="text-xs text-[var(--text-muted)]">Documents</p>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+      <div className="flex items-center justify-between p-4 card">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
-            <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-            </svg>
-          </div>
+          <DollarSign className="w-5 h-5 text-[var(--success)] mr-3" />
           <div>
-            <p className="text-sm font-semibold text-gray-700">Monetized</p>
-            <p className="text-xs text-gray-600">Paid documents</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Monetized</p>
+            <p className="text-xs text-[var(--text-muted)]">Paid documents</p>
           </div>
         </div>
         <div className="text-right">
           {loading ? (
-            <div className="loading-shimmer w-16 h-6 rounded"></div>
+            <div className="w-16 h-6 rounded bg-[var(--surface-elevated)] animate-pulse"></div>
           ) : (
             <>
-              <p className="text-lg font-bold text-gray-900">{formatNumber(analytics?.monetizedDocuments || 0)}</p>
-              <p className="text-xs text-gray-500">Files</p>
+              <p className="text-lg font-bold text-[var(--text-primary)]">{formatNumber(analytics?.monetizedDocuments || 0)}</p>
+              <p className="text-xs text-[var(--text-muted)]">Files</p>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl">
+      <div className="flex items-center justify-between p-4 card">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
-            <svg className="w-5 h-5 text-white icon-clean" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
+          <TrendingUp className="w-5 h-5 text-[var(--warning)] mr-3" />
           <div>
-            <p className="text-sm font-semibold text-gray-700">Monetization Rate</p>
-            <p className="text-xs text-gray-600">Percentage monetized</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Monetization Rate</p>
+            <p className="text-xs text-[var(--text-muted)]">Percentage monetized</p>
           </div>
         </div>
         <div className="text-right">
           {loading ? (
-            <div className="loading-shimmer w-20 h-6 rounded"></div>
+            <div className="w-20 h-6 rounded bg-[var(--surface-elevated)] animate-pulse"></div>
           ) : (
             <>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-lg font-bold text-[var(--text-primary)]">
                 {Math.round(analytics?.monetizationRate || 0)}%
               </p>
-              <p className="text-xs text-gray-500">Rate</p>
+              <p className="text-xs text-[var(--text-muted)]">Rate</p>
             </>
           )}
         </div>

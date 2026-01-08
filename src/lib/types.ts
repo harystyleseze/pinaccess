@@ -39,10 +39,10 @@ export interface PaymentInstruction {
 
 export interface PaymentRequirement {
   asset: string; // USDC token address (0x036CbD53842c5426634e7929541eC2318f3dCF7e for Base Sepolia)
-  payTo: string; // Creator wallet address
+  pay_to: string; // Creator wallet address (Pinata API uses snake_case)
   network: 'base-sepolia';
   description: string;
-  maxAmountRequired: string; // USDC amount in smallest unit (6 decimals)
+  max_amount_required: string; // USDC amount in smallest unit (6 decimals) (Pinata API uses snake_case)
 }
 
 export interface AttachedCID {
@@ -200,4 +200,67 @@ export interface PriceInputProps {
   onPriceChange: (usdAmount: number, usdcAmount: string) => void;
   onWalletChange: (address: string, isValid: boolean) => void;
   showTestnetWarning?: boolean;
+}
+
+// Wallet Integration Types
+export interface WalletConnection {
+  address: string;
+  chainId: number;
+  isConnected: boolean;
+  balance?: {
+    usdc: string;
+    eth: string;
+  };
+  provider: SupportedWallet;
+}
+
+export type SupportedWallet = 'metamask' | 'walletconnect' | 'coinbase' | 'injected';
+
+export interface WalletConnectorProps {
+  onWalletConnect: (address: string, chainId: number) => void;
+  onWalletDisconnect: () => void;
+  requiredChainId: number; // Base Sepolia chain ID
+  className?: string;
+}
+
+export interface PaymentButtonProps {
+  paymentInfo: {
+    amount: string;
+    recipient: string;
+    network: string;
+    asset: string;
+    gatewayUrl: string;
+  };
+  walletAddress?: string;
+  onPaymentSuccess: (paymentProof: string) => void;
+  onPaymentError: (error: string) => void;
+  disabled?: boolean;
+}
+
+export interface ContentViewerProps {
+  cid: string;
+  paymentProof?: string;
+  contentInfo: {
+    name: string;
+    mimeType: string;
+    size: number;
+  };
+  onAccessError: (error: string) => void;
+}
+
+export interface PaymentExecution {
+  transactionHash?: string;
+  paymentProof?: string;
+  status: 'idle' | 'connecting' | 'confirming' | 'processing' | 'success' | 'error';
+  error?: string;
+  estimatedTime?: number; // seconds
+}
+
+export interface ContentAccess {
+  cid: string;
+  paymentProof: string;
+  accessGranted: boolean;
+  contentUrl?: string; // Blob URL for downloaded content
+  error?: string;
+  accessedAt: string;
 }
