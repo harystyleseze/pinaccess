@@ -164,12 +164,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
         } else if (uploadResult.error?.includes('type')) {
           const error = ErrorFactory.upload('Invalid file type', 'type');
           return NextResponse.json(createErrorResponse(error), { status: error.statusCode });
-        } else if (uploadResult.error?.includes('network') || uploadResult.error?.includes('timeout')) {
-          const error = ErrorFactory.upload('Network error during upload', 'network');
+        } else if (uploadResult.error?.includes('timeout')) {
+          const error = ErrorFactory.upload('Upload timed out', 'network');
           return NextResponse.json(createErrorResponse(error), { status: error.statusCode });
         } else {
-          const error = ErrorFactory.upload(uploadResult.error || 'Upload failed');
-          return NextResponse.json(createErrorResponse(error), { status: error.statusCode });
+          // Return the actual error message from Pinata for better user feedback
+          return NextResponse.json({
+            success: false,
+            error: uploadResult.error || 'File upload failed. Please try again.'
+          }, { status: 400 });
         }
       }
 

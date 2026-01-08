@@ -86,6 +86,12 @@ export function PaymentButton({
         return;
       }
 
+      // Prevent self-payment - user cannot buy their own content
+      if (paymentInfo.recipient.toLowerCase() === address?.toLowerCase()) {
+        onPaymentError('You cannot purchase your own content');
+        return;
+      }
+
       // Validate balance
       if (!hasSufficientBalance()) {
         onPaymentError('Insufficient USDC token balance for this payment');

@@ -1,9 +1,9 @@
 /**
  * x402 Payment Execution Client
- * 
+ *
  * This module provides x402 payment execution using the x402-fetch library
  * with proper EIP-712 typed data signing for browser wallets.
- * 
+ *
  * The x402 protocol uses TransferWithAuthorization (EIP-3009) which requires
  * signing a typed message, NOT executing actual token transfers.
  */
@@ -103,11 +103,21 @@ export class X402PaymentClient {
       }
 
       // Check balance
-      const hasSufficientBalance = await walletManager.hasSufficientBalance(
-        walletClient.account.address,
-        paymentInfo.amount
-      );
-      
+      const balances = await walletManager.getBalances(walletClient.account.address);
+      const requiredUSDC = parseFloat(paymentInfo.amount) / 1000000; // Convert from smallest units to tokens
+
+      console.log('x402: Balance check:', {
+        address: walletClient.account.address,
+        currentUSDC: balances.usdc,
+        requiredUSDC: requiredUSDC.toFixed(6),
+        requiredSmallestUnits: paymentInfo.amount,
+        gatewayUrl: paymentInfo.gatewayUrl
+      });
+
+      const hasSufficientBalance = parseFloat(balances.usdc) >= requiredUSDC;
+
+      console.log('x402: Has sufficient balance:', hasSufficientBalance);
+
       if (!hasSufficientBalance) {
         throw new PaymentExecutionError(
           PaymentErrorType.INSUFFICIENT_BALANCE,
@@ -164,16 +174,29 @@ export class X402PaymentClient {
     walletClient: WalletClient
   ): Promise<PaymentResult> {
     try {
+      // Debug: Log wallet client details
+      console.log('x402: WalletClient details:', {
+        hasAccount: !!walletClient.account,
+        accountAddress: walletClient.account?.address,
+        chainId: walletClient.chain?.id,
+        chainName: walletClient.chain?.name,
+        hasTransport: !!walletClient.transport,
+        hasSignTypedData: typeof walletClient.signTypedData === 'function'
+      });
+
       // Wrap fetch with x402 payment handling
-      // The walletClient from wagmi is a SignerWallet that x402-fetch can use directly
+      // The x402-fetch library recognizes wagmi WalletClient as a SignerWallet
+      // because it has 'chain' and 'transport' properties.
       // The library will:
       // 1. Make initial request → receive 402 with payment requirements
-      // 2. Create EIP-712 typed data for TransferWithAuthorization  
+      // 2. Create EIP-712 typed data for TransferWithAuthorization
       // 3. Prompt wallet to SIGN (not transfer) the authorization
       // 4. Encode signed authorization as X-Payment header
       // 5. Retry request with payment proof
-      // Using type assertion as Signer since wagmi WalletClient implements the required SignerWallet interface
-      const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as unknown as Parameters<typeof wrapFetchWithPayment>[1]);
+      const fetchWithPayment = wrapFetchWithPayment(
+        fetch,
+        walletClient as Parameters<typeof wrapFetchWithPayment>[1]
+      );
 
       // Execute the payment flow - x402-fetch handles everything
       const response = await fetchWithPayment(paymentInfo.gatewayUrl, {
@@ -182,23 +205,50 @@ export class X402PaymentClient {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('x402: Payment response not OK:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+
+        // Parse the error to provide more specific feedback
+        if (response.status === 402) {
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.error === 'Failed to verify payment') {
+              // This usually means insufficient balance or signature issue
+              throw new PaymentExecutionError(
+                PaymentErrorType.PAYMENT_FAILED,
+                'Payment verification failed. Please ensure you have sufficient USDC balance on Base Sepolia.',
+                new Error(errorText)
+              );
+            }
+          } catch (parseError) {
+            // If parsing fails, use the raw error
+          }
+        }
+
         throw new Error(`Payment failed: ${response.status} - ${errorText}`);
       }
 
       // Extract payment proof from response headers
-      const paymentProof = response.headers.get('x-payment-response') || 
-                          response.headers.get('x-payment') || 
-                          'x402-authorization-signed';
-      
+      const paymentProof = response.headers.get('x-payment-response') ||
+                          response.headers.get('x-payment') ||
+                          '';
+
       // For x402, the settlement happens via the Coinbase Facilitator
       // The response header may contain the settlement transaction hash
-      const transactionHash = response.headers.get('x-transaction-hash') || 
+      const transactionHash = response.headers.get('x-transaction-hash') ||
                              response.headers.get('x-settlement-tx') ||
-                             `0x${Date.now().toString(16).padStart(64, '0')}` as Hash;
+                             '';
+
+      if (!paymentProof && !transactionHash) {
+        console.warn('x402: No payment proof or transaction hash in response headers');
+      }
 
       return {
-        transactionHash: transactionHash as Hash,
-        paymentProof,
+        transactionHash: (transactionHash || `0x${'0'.repeat(64)}`) as Hash,
+        paymentProof: paymentProof || 'payment-completed',
         contentUrl: response.url,
         paidAmount: paymentInfo.amount,
         timestamp: new Date().toISOString()

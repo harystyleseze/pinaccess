@@ -215,11 +215,8 @@ export class PinataClient {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
-      // Use private network for secure uploads
       formData.append('network', 'private');
-      
-      // Add metadata as keyvalues for the new v3 API (flat structure)
+
       const keyvalues = {
         creator: String(metadata.creator || 'unknown'),
         uploadTimestamp: String(metadata.uploadTimestamp || new Date().toISOString()),
@@ -227,11 +224,26 @@ export class PinataClient {
         mimeType: String(file.type),
         originalSize: String(file.size)
       };
-      
-      // Send keyvalues directly, not nested in an object
       formData.append('keyvalues', JSON.stringify(keyvalues));
 
-      const response = await this.makeRequest<{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      const rawResponse = await fetch('https://uploads.pinata.cloud/v3/files', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${this.jwt}` },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!rawResponse.ok) {
+        const errorText = await rawResponse.text();
+        throw new PinataApiError(`Upload failed: ${errorText}`, rawResponse.status);
+      }
+
+      const response = await rawResponse.json() as {
         data: {
           id: string;
           cid: string;
@@ -239,15 +251,30 @@ export class PinataClient {
           size: number;
           mime_type: string;
           created_at: string;
+          is_duplicate?: boolean;
         };
-      }>(
-        'https://uploads.pinata.cloud/v3/files',
+      };
+
+      // Verify the file exists on PRIVATE network (required for x402)
+      const verifyResponse = await fetch(
+        `https://api.pinata.cloud/v3/files/private/${response.data.id}`,
         {
-          method: 'POST',
-          headers: this.getFormDataHeaders(),
-          body: formData,
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${this.jwt}` },
         }
       );
+
+      if (verifyResponse.status === 404) {
+        // File not on PRIVATE storage - this happens when:
+        // 1. File was previously uploaded to PUBLIC, or
+        // 2. File was deleted but CID is cached as duplicate
+        const errorMsg = response.data.is_duplicate
+          ? 'This file was previously uploaded but has been deleted. The content ID is cached but the file no longer exists. Please upload a different file with different content.'
+          : 'File upload succeeded but verification failed. Please try again or contact support.';
+
+        console.error('[Pinata] Upload verification failed:', errorMsg);
+        return { success: false, error: errorMsg };
+      }
 
       return {
         success: true,
@@ -258,25 +285,19 @@ export class PinataClient {
           size: response.data.size,
           mimeType: response.data.mime_type || file.type,
           timestamp: response.data.created_at,
-          isDuplicate: false
+          isDuplicate: response.data.is_duplicate || false
         }
       };
     } catch (error) {
-      console.error('File upload error:', error);
-      console.error('Error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        statusCode: error instanceof PinataApiError ? error.statusCode : undefined,
-        response: error instanceof PinataApiError ? error.response : undefined
-      });
-      
+      console.error('[Pinata] Upload error:', error instanceof Error ? error.message : 'Unknown error');
+
       if (error instanceof PinataApiError) {
         return {
           success: false,
-          error: `Upload failed: ${error.message} (Status: ${error.statusCode})`
+          error: `Upload failed: ${error.message}`
         };
       }
-      
+
       return {
         success: false,
         error: `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -749,7 +770,6 @@ export class PinataClient {
         }
       );
 
-      // Generate gateway URL in the expected format
       const gatewayUrl = `${this.gatewayUrl}/x402/cid/${cid}`;
 
       return {
@@ -767,13 +787,13 @@ export class PinataClient {
         }
       };
     } catch (error) {
-      console.error('CID attachment error:', error);
-      
+      console.error('[Pinata] CID attachment failed:', error instanceof Error ? error.message : 'Unknown error');
+
       if (error instanceof PinataApiError) {
         if (error.statusCode === 404) {
           return {
             success: false,
-            error: 'CID not found, is not private, or payment instruction does not exist'
+            error: 'CID not found, is not private, or payment instruction does not exist. Ensure the file was uploaded with network=private.'
           };
         }
         if (error.statusCode === 409) {
@@ -788,7 +808,7 @@ export class PinataClient {
           error: `CID attachment failed: ${error.message}`
         };
       }
-      
+
       return {
         success: false,
         error: 'CID attachment failed due to an unexpected error'
@@ -971,23 +991,25 @@ export class PinataClient {
     try {
       // Build query parameters for Pinata's v3 files API
       const queryParams = new URLSearchParams();
-      
+
       // Set page size (use a larger size to get more files)
       const pageSize = filters?.pageSize || 10;
-      queryParams.append('limit', Math.min(pageSize * 2, 50).toString()); // Get more files to enable proper pagination
-      
+      queryParams.append('limit', Math.min(pageSize * 2, 100).toString());
+
       // Add metadata filters using Pinata's key-value query system
       if (filters?.creator) {
         queryParams.append('metadata[creator]', filters.creator);
       }
-      
+
       if (filters?.status) {
         queryParams.append('metadata[status]', filters.status);
       }
-      
-      // Sort by most recent first
-      queryParams.append('sort', 'created_at');
-      queryParams.append('order', 'desc');
+
+      // Sort by most recent first (Pinata uses ASC/DESC, not asc/desc)
+      queryParams.append('order', 'DESC');
+
+      // Pinata v3 API: GET /v3/files/{network}
+      const url = `https://api.pinata.cloud/v3/files/private?${queryParams.toString()}`;
 
       const response = await this.makeRequest<{
         data: {
@@ -1003,7 +1025,7 @@ export class PinataClient {
           next_page_token?: string;
         };
       }>(
-        `https://api.pinata.cloud/v3/files/private?${queryParams.toString()}`,
+        url,
         {
           method: 'GET',
           headers: this.getAuthHeaders(),

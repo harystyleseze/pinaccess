@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     // Get all payment instructions to find monetized content
     const paymentInstructionsResult = await pinataClient.instance.listPaymentInstructions({
-      pageSize: 100 // Get a large number to find all monetized content
+      pageSize: 100
     });
 
     if (!paymentInstructionsResult.success) {
@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
     for (const pi of paymentInstructionsResult.data!.paymentInstructions) {
       const attachedResult = await pinataClient.instance.getAttachedCids(pi.id);
+
       if (attachedResult.success) {
         for (const attachedCid of attachedResult.data!.cids) {
           monetizedCIDs.add(attachedCid.cid);
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Get all documents and filter for monetized ones
     const allDocumentsResult = await pinataClient.instance.listDocuments({
-      pageSize: 100 // Get more documents to find the monetized ones
+      pageSize: 100
     });
 
     if (!allDocumentsResult.success) {
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       .map(doc => {
         const paymentInstruction = cidToPaymentInstruction.get(doc.cid);
         const paymentRequirement = paymentInstruction?.paymentRequirements[0];
-        
+
         return {
           id: doc.id,
           cid: doc.cid,
@@ -76,9 +77,9 @@ export async function GET(request: NextRequest) {
           size: doc.size,
           mimeType: doc.mimeType,
           createdAt: doc.createdAt,
-          isMonetized: true, // These are definitely monetized since they're attached to payment instructions
+          isMonetized: true,
           price: paymentRequirement ? {
-            usd: parseFloat((paymentRequirement as any).max_amount_required || '0') / 1000000, // Convert from USDC smallest unit (6 decimals)
+            usd: parseFloat((paymentRequirement as any).max_amount_required || '0') / 1000000,
             usdc: (paymentRequirement as any).max_amount_required || '0'
           } : {
             usd: 0,
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
           gatewayUrl: getX402GatewayUrl(doc.cid),
           metadata: {
             creator: doc.metadata.creator,
-            status: 'monetized' as const, // Override status since these are monetized
+            status: 'monetized' as const,
             description: paymentInstruction?.description || (doc.metadata as any).description
           }
         };
@@ -108,8 +109,8 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Public documents API error:', error);
-    
+    console.error('[API] Public documents error:', error instanceof Error ? error.message : 'Unknown error');
+
     return NextResponse.json({
       success: false,
       error: 'Internal server error while fetching public documents'

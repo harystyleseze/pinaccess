@@ -256,13 +256,17 @@ export default function UploadPage() {
         throw new Error(attachResult.error || 'Document monetization failed');
       }
 
+      // Generate shareable URL that points to app's content page (not Pinata gateway)
+      // This ensures buyers land on the app's payment UI, not raw Pinata API
+      const shareableUrl = `${window.location.origin}/content/${uploadResult.data.cid}`;
+
       // Success!
       setUploadState({
         isUploading: false,
         uploadProgress: 100,
         currentStep: 'complete',
         success: true,
-        gatewayUrl: attachResult.data.gatewayUrl
+        gatewayUrl: shareableUrl
       });
 
     } catch (error) {

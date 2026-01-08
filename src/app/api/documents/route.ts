@@ -89,21 +89,24 @@ export async function GET(request: NextRequest) {
     }
     
     // Build filters object with sanitized inputs
-    const filters = {
+    // Don't pass 'monetized' status to Pinata - monetization is determined dynamically
+    // from payment instruction attachments, not from stored metadata
+    const pinataFilters = {
       ...(creator && { creator: creator.trim() }),
-      ...(status && { status }),
+      ...(status && status !== 'monetized' && { status }),
       ...(pageToken && { pageToken: pageToken.trim() }),
-      ...(pageSize && { pageSize })
+      // Fetch more if filtering by monetized to ensure we get enough results
+      ...(pageSize && { pageSize: status === 'monetized' ? 100 : pageSize })
     };
-    
+
     // Call Pinata client to list documents
-    const result = await pinataClient.instance.listDocuments(filters);
+    const result = await pinataClient.instance.listDocuments(pinataFilters);
 
     if (!result.success) {
       // Enhanced error logging
       console.error('Document listing failed:', {
         error: result.error,
-        filters,
+        filters: pinataFilters,
         ip: getClientIP(request)
       });
 
@@ -147,7 +150,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Update documents with proper monetization status and pricing
-    const documents = result.data?.documents.map(doc => {
+    let documents = result.data?.documents.map(doc => {
       const monetizationInfo = monetizedCIDMap.get(doc.cid);
       if (monetizationInfo) {
         return {
@@ -163,6 +166,11 @@ export async function GET(request: NextRequest) {
       }
       return doc;
     }) || [];
+
+    // Apply client-side filter for monetized status (since it's determined dynamically)
+    if (status === 'monetized') {
+      documents = documents.filter(doc => doc.isMonetized === true);
+    }
 
     // Return successful response
     return NextResponse.json({
