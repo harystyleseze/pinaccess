@@ -50,7 +50,7 @@ A creator-focused web application that enables content creators to monetize priv
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/harystyleseze/pinaccess
    cd pinaccess
    ```
 
